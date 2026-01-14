@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Alert, ActivityIndicator, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { useCart } from '../context/CartContext';
 import { orderService } from '../services/api';
 import { logger } from '../services/logger';
@@ -9,16 +10,13 @@ import PaymentSheet from '../components/PaymentSheet';
 
 const cartLogger = logger.withContext('Cart');
 
-interface CartScreenProps {
-  onClose: () => void;
-}
-
 interface PendingPayment {
   orderId: string;
   amount: number;
 }
 
-const CartScreen: React.FC<CartScreenProps> = ({ onClose }) => {
+const CartScreen: React.FC = () => {
+  const navigation = useNavigation();
   const { items, removeFromCart, updateQuantity, getTotal, clearCart } = useCart();
   const [isLoading, setIsLoading] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
@@ -67,7 +65,9 @@ const CartScreen: React.FC<CartScreenProps> = ({ onClose }) => {
     setShowPayment(false);
     setPendingPayment(null);
     clearCart();
-    onClose();
+    Alert.alert('Success!', 'Your order has been placed successfully.', [
+      { text: 'OK', onPress: () => navigation.goBack() }
+    ]);
   };
 
   const handlePaymentCancel = async () => {
