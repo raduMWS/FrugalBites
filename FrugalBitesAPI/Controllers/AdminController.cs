@@ -1,6 +1,9 @@
+using System.Security.Claims;
 using FrugalBites.Data;
 using FrugalBites.Models.DTOs;
 using FrugalBites.Models.Entities;
+using FrugalBites.Models.Enums;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,18 +11,44 @@ namespace FrugalBites.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class AdminController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
+    private readonly ILogger<AdminController> _logger;
 
-    public AdminController(ApplicationDbContext context)
+    public AdminController(ApplicationDbContext context, ILogger<AdminController> logger)
     {
         _context = context;
+        _logger = logger;
+    }
+
+    /// <summary>
+    /// Verifies the current user is an admin
+    /// </summary>
+    private async Task<bool> IsAdmin()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            ?? User.FindFirst("sub")?.Value;
+        
+        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+        {
+            return false;
+        }
+
+        var user = await _context.Users.FindAsync(userId);
+        return user?.UserType == UserType.ADMIN;
     }
 
     [HttpGet("offers")]
     public async Task<ActionResult<IEnumerable<OfferDTO>>> GetAllOffers()
     {
+        if (!await IsAdmin())
+        {
+            _logger.LogWarning("Unauthorized access attempt to admin offers endpoint");
+            return Forbid();
+        }
+
         var offers = await _context.Offers
             .Include(o => o.Merchant)
             .ToListAsync();
@@ -54,6 +83,12 @@ public class AdminController : ControllerBase
     [HttpPut("offers/{offerId}")]
     public async Task<IActionResult> UpdateOffer(Guid offerId, [FromBody] OfferUpdateDTO updateDTO)
     {
+        if (!await IsAdmin())
+        {
+            _logger.LogWarning("Unauthorized access attempt to update offer {OfferId}", offerId);
+            return Forbid();
+        }
+
         var offer = await _context.Offers.FindAsync(offerId);
         if (offer == null)
         {
@@ -67,12 +102,19 @@ public class AdminController : ControllerBase
         offer.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
+        _logger.LogInformation("Offer {OfferId} updated by admin", offerId);
         return NoContent();
     }
 
     [HttpGet("merchants")]
     public async Task<ActionResult<IEnumerable<MerchantDTO>>> GetAllMerchants()
     {
+        if (!await IsAdmin())
+        {
+            _logger.LogWarning("Unauthorized access attempt to admin merchants endpoint");
+            return Forbid();
+        }
+
         var merchants = await _context.Merchants
             .Include(m => m.User)
             .ToListAsync();
@@ -113,6 +155,12 @@ public class AdminController : ControllerBase
     [HttpPut("merchants/{merchantId}")]
     public async Task<IActionResult> UpdateMerchant(Guid merchantId, [FromBody] MerchantUpdateDTO updateDTO)
     {
+        if (!await IsAdmin())
+        {
+            _logger.LogWarning("Unauthorized access attempt to update merchant {MerchantId}", merchantId);
+            return Forbid();
+        }
+
         var merchant = await _context.Merchants.FindAsync(merchantId);
         if (merchant == null)
         {
@@ -126,6 +174,7 @@ public class AdminController : ControllerBase
         merchant.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
+        _logger.LogInformation("Merchant {MerchantId} updated by admin", merchantId);
         return NoContent();
     }
 }

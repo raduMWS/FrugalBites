@@ -31,7 +31,17 @@ try
 
 // Add JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var secret = jwtSettings["Secret"] ?? throw new InvalidOperationException("JWT secret is not configured");
+// Use environment variable for secret in production, fall back to config for development
+var secret = Environment.GetEnvironmentVariable("JWT_SECRET") 
+    ?? jwtSettings["Secret"] 
+    ?? throw new InvalidOperationException("JWT secret is not configured. Set JWT_SECRET environment variable.");
+
+// Validate secret length (should be at least 32 characters for HS256)
+if (secret.Length < 32)
+{
+    throw new InvalidOperationException("JWT secret must be at least 32 characters long");
+}
+
 var key = Encoding.ASCII.GetBytes(secret);
 
 builder.Services.AddAuthentication(options =>
@@ -61,11 +71,24 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // Add CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    // Development policy - more permissive
+    options.AddPolicy("Development", policy =>
     {
         policy.AllowAnyOrigin()
               .AllowAnyMethod()
               .AllowAnyHeader();
+    });
+
+    // Production policy - restricted to known origins
+    options.AddPolicy("Production", policy =>
+    {
+        var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() 
+            ?? new[] { "https://frugalbites.com" };
+        
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
 });
 
@@ -93,7 +116,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseCors("AllowAll");
+// Use environment-appropriate CORS policy
+var corsPolicy = app.Environment.IsDevelopment() ? "Development" : "Production";
+app.UseCors(corsPolicy);
 
 app.UseAuthentication();
 app.UseAuthorization();
