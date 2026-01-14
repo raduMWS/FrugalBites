@@ -16,6 +16,7 @@ import { offerService, merchantService } from '../services/api';
 import { OfferDTO } from '../types/offer';
 import { MerchantDTO, PromoBanner } from '../types/merchant';
 import { RootStackParamList, TabParamList } from '../App';
+import { colors } from '../theme';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<TabParamList, 'Home'>,
@@ -308,40 +309,40 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: colors.background.primary,
   },
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background.secondary,
   },
   locationWarning: {
-    backgroundColor: '#fef3c7',
-    borderColor: '#f59e0b',
+    backgroundColor: colors.warning.light,
+    borderColor: colors.warning.main,
     borderWidth: 1,
     margin: 16,
     padding: 12,
     borderRadius: 8,
   },
   warningText: {
-    color: '#92400e',
+    color: colors.secondary[800],
     fontSize: 14,
     fontWeight: '500',
   },
   section: {
     paddingHorizontal: 16,
     paddingVertical: 16,
-    backgroundColor: 'white',
+    backgroundColor: colors.background.primary,
     marginTop: 8,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: colors.text.primary,
     marginBottom: 4,
   },
   sectionSubtitle: {
     fontSize: 12,
-    color: '#999',
+    color: colors.text.tertiary,
     marginBottom: 12,
   },
   horizontalList: {
@@ -349,7 +350,7 @@ const styles = StyleSheet.create({
   },
   noItemsText: {
     fontSize: 14,
-    color: '#999',
+    color: colors.text.tertiary,
     paddingVertical: 20,
     textAlign: 'center',
   },
@@ -357,7 +358,7 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 16,
     paddingHorizontal: 16,
-    backgroundColor: 'white',
+    backgroundColor: colors.background.primary,
     marginTop: 8,
   },
   offersGrid: {
@@ -370,7 +371,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: '#666',
+    color: colors.text.secondary,
   },
   errorContainer: {
     padding: 32,
@@ -379,7 +380,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: '#dc2626',
+    color: colors.error.main,
   },
 });
 

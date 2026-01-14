@@ -7,12 +7,28 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { useStripe } from '@stripe/stripe-react-native';
+import Constants from 'expo-constants';
 import { paymentService } from '../services/api';
 import { PaymentStatus } from '../types/payment';
 import { logger } from '../services/logger';
 
 const paymentLogger = logger.withContext('Payment');
+
+// Conditionally import Stripe hooks
+const isExpoGo = Constants.appOwnership === 'expo';
+let useStripe: () => { initPaymentSheet: any; presentPaymentSheet: any } = () => ({
+  initPaymentSheet: async () => ({ error: { message: 'Stripe not available in Expo Go' } }),
+  presentPaymentSheet: async () => ({ error: { code: 'NotAvailable', message: 'Stripe not available in Expo Go' } }),
+});
+
+if (!isExpoGo) {
+  try {
+    const stripe = require('@stripe/stripe-react-native');
+    useStripe = stripe.useStripe;
+  } catch (e) {
+    console.warn('Stripe hooks not available');
+  }
+}
 
 interface PaymentSheetProps {
   orderId: string;
@@ -32,7 +48,13 @@ export const PaymentSheet: React.FC<PaymentSheetProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    initializePayment();
+    if (isExpoGo) {
+      // In Expo Go, show a message that payments are simulated
+      setError('Payment simulation mode (Expo Go). Tap "Pay Now" to simulate payment.');
+      setStatus('idle');
+    } else {
+      initializePayment();
+    }
   }, [orderId]);
 
   const initializePayment = async () => {
@@ -79,6 +101,22 @@ export const PaymentSheet: React.FC<PaymentSheetProps> = ({
 
   const handlePayPress = async () => {
     setStatus('processing');
+
+    // Expo Go simulation mode
+    if (isExpoGo) {
+      paymentLogger.info('Simulating payment in Expo Go');
+      
+      // Simulate a brief processing delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      setStatus('success');
+      Alert.alert(
+        'Payment Simulated',
+        'This is a simulated payment (Expo Go mode). In a real build, Stripe payment sheet would appear here.',
+        [{ text: 'OK', onPress: onSuccess }]
+      );
+      return;
+    }
 
     try {
       paymentLogger.info('Opening payment sheet');

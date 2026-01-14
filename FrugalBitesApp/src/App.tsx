@@ -10,12 +10,14 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { StripeProvider } from '@stripe/stripe-react-native';
+import Constants from 'expo-constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
-import { paymentService } from './services/api';
+import { colors } from './theme';
 import AuthScreen from './screens/AuthScreen';
+import OnboardingScreen from './screens/OnboardingScreen';
 import HomeScreen from './screens/HomeScreen';
 import CartScreen from './screens/CartScreen';
 import BrowseScreen from './screens/BrowseScreen';
@@ -25,6 +27,19 @@ import ProfileScreen from './screens/ProfileScreen';
 import RestaurantDetailScreen from './screens/RestaurantDetailScreen';
 import OfferDetailScreen from './screens/OfferDetailScreen';
 import { MerchantDTO } from './types/merchant';
+
+// Conditionally import Stripe (only works in development builds, not Expo Go)
+let StripeProvider: React.ComponentType<{ publishableKey: string; children: React.ReactNode }> | null = null;
+const isExpoGo = Constants.appOwnership === 'expo';
+
+if (!isExpoGo) {
+  try {
+    const stripe = require('@stripe/stripe-react-native');
+    StripeProvider = stripe.StripeProvider;
+  } catch (e) {
+    console.warn('Stripe not available - running in Expo Go mode');
+  }
+}
 
 export type RootStackParamList = {
   MainTabs: undefined;
@@ -75,10 +90,10 @@ const TabNavigator = () => {
           
           return <Ionicons name={iconName} size={22} color={color} />;
         },
-        tabBarActiveTintColor: '#16a34a',
-        tabBarInactiveTintColor: '#999',
+        tabBarActiveTintColor: colors.tabBar.active,
+        tabBarInactiveTintColor: colors.tabBar.inactive,
         tabBarStyle: {
-          backgroundColor: 'white',
+          backgroundColor: colors.tabBar.background,
           borderTopWidth: 0,
           borderTopLeftRadius: 20,
           borderTopRightRadius: 20,
@@ -117,13 +132,36 @@ const TabNavigator = () => {
 
 const RootNavigator = () => {
   const { isSignedIn, isLoading } = useAuth();
+  const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
 
-  if (isLoading) {
+  useEffect(() => {
+    checkOnboarding();
+  }, []);
+
+  const checkOnboarding = async () => {
+    try {
+      const completed = await AsyncStorage.getItem('onboarding_complete');
+      setShowOnboarding(completed !== 'true');
+    } catch {
+      setShowOnboarding(false);
+    }
+  };
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+  };
+
+  if (isLoading || showOnboarding === null) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#16a34a" />
       </View>
     );
+  }
+
+  // Show onboarding before anything else
+  if (showOnboarding) {
+    return <OnboardingScreen onComplete={handleOnboardingComplete} />;
   }
 
   return (
@@ -175,47 +213,36 @@ const RootNavigator = () => {
 };
 
 function App() {
-  const [stripePublishableKey, setStripePublishableKey] = useState<string | null>(null);
+  // Stripe publishable key - only needed for development builds
+  const stripePublishableKey = 'pk_test_placeholder'; // Replace with your actual test key
 
-  useEffect(() => {
-    // Fetch Stripe publishable key from backend
-    const fetchStripeConfig = async () => {
-      try {
-        const config = await paymentService.getConfig();
-        setStripePublishableKey(config.publishableKey);
-      } catch (error) {
-        console.error('Failed to fetch Stripe config:', error);
-        // Use a fallback for development - replace with your test key
-        setStripePublishableKey('pk_test_placeholder');
-      }
-    };
-    fetchStripeConfig();
-  }, []);
+  const AppContent = (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <CartProvider>
+          <WishlistProvider>
+            <RootNavigator />
+          </WishlistProvider>
+        </CartProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
 
-  // Don't render until we have the Stripe key
-  if (!stripePublishableKey) {
+  // Wrap with StripeProvider only if available (development build)
+  if (StripeProvider && !isExpoGo) {
     return (
       <SafeAreaProvider>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#16a34a" />
-        </View>
+        <StripeProvider publishableKey={stripePublishableKey}>
+          {AppContent}
+        </StripeProvider>
       </SafeAreaProvider>
     );
   }
 
+  // Expo Go mode - no Stripe
   return (
     <SafeAreaProvider>
-      <StripeProvider publishableKey={stripePublishableKey}>
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <CartProvider>
-              <WishlistProvider>
-                <RootNavigator />
-              </WishlistProvider>
-            </CartProvider>
-          </AuthProvider>
-        </QueryClientProvider>
-      </StripeProvider>
+      {AppContent}
     </SafeAreaProvider>
   );
 }
@@ -225,7 +252,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background.eco,
   },
 });
 

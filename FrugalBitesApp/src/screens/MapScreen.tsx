@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, FlatList, Dimensions, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
-import MapView, { Marker, PROVIDER_GOOGLE, Region, Callout } from 'react-native-maps';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -13,11 +12,6 @@ import { RootStackParamList } from '../App';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-const { width, height } = Dimensions.get('window');
-const ASPECT_RATIO = width / height;
-const LATITUDE_DELTA = 0.02;
-const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
-
 // Default location (Bucharest center)
 const DEFAULT_LOCATION = {
   lat: 44.4268,
@@ -26,10 +20,8 @@ const DEFAULT_LOCATION = {
 
 const MapScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
-  const mapRef = useRef<MapView>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedMerchant, setSelectedMerchant] = useState<MerchantDTO | null>(null);
-  const [mapReady, setMapReady] = useState(false);
   const [filters, setFilters] = useState({
     hideSoldOut: true,
     bonapp: true,
@@ -44,58 +36,17 @@ const MapScreen: React.FC = () => {
         const location = await Location.getCurrentPositionAsync({
           accuracy: Location.Accuracy.High,
         });
-        const newLocation = {
+        setUserLocation({
           lat: location.coords.latitude,
           lng: location.coords.longitude,
-        };
-        setUserLocation(newLocation);
-        
-        // Center map on user location
-        if (mapRef.current && mapReady) {
-          mapRef.current.animateToRegion({
-            latitude: newLocation.lat,
-            longitude: newLocation.lng,
-            latitudeDelta: LATITUDE_DELTA,
-            longitudeDelta: LONGITUDE_DELTA,
-          }, 500);
-        }
+        });
       } else {
-        // Use default location if permission denied
         setUserLocation(DEFAULT_LOCATION);
       }
     } catch (err) {
       console.warn(err);
       setUserLocation(DEFAULT_LOCATION);
     }
-  };
-
-  const centerOnUser = () => {
-    if (mapRef.current && userLocation) {
-      mapRef.current.animateToRegion({
-        latitude: userLocation.lat,
-        longitude: userLocation.lng,
-        latitudeDelta: LATITUDE_DELTA,
-        longitudeDelta: LONGITUDE_DELTA,
-      }, 500);
-    }
-  };
-
-  const handleMarkerPress = (merchant: MerchantDTO) => {
-    setSelectedMerchant(merchant);
-    
-    // Center map on selected merchant
-    if (mapRef.current && merchant.latitude && merchant.longitude) {
-      mapRef.current.animateToRegion({
-        latitude: merchant.latitude,
-        longitude: merchant.longitude,
-        latitudeDelta: LATITUDE_DELTA,
-        longitudeDelta: LONGITUDE_DELTA,
-      }, 300);
-    }
-  };
-
-  const onMapReady = () => {
-    setMapReady(true);
   };
 
   useEffect(() => {
@@ -182,65 +133,49 @@ const MapScreen: React.FC = () => {
         </View>
       </SafeAreaView>
 
-      {/* Map View */}
-      <MapView
-        ref={mapRef}
-        style={styles.map}
-        provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
-        initialRegion={{
-          latitude: userLocation?.lat || DEFAULT_LOCATION.lat,
-          longitude: userLocation?.lng || DEFAULT_LOCATION.lng,
-          latitudeDelta: LATITUDE_DELTA,
-          longitudeDelta: LONGITUDE_DELTA,
-        }}
-        showsUserLocation={true}
-        showsMyLocationButton={false}
-        onMapReady={onMapReady}
-        onPress={() => setSelectedMerchant(null)}
-      >
-        {/* Merchant Markers */}
-        {merchants?.map((merchant) => {
-          if (!merchant.latitude || !merchant.longitude) return null;
-          
+      {/* Merchant List */}
+      <FlatList
+        data={merchants}
+        style={styles.list}
+        contentContainerStyle={styles.listContent}
+        renderItem={({ item: merchant }) => {
           const merchantOfferCount = offers?.filter(o => o.merchantId === merchant.merchantId).length || 0;
-          const isSelected = selectedMerchant?.merchantId === merchant.merchantId;
-          
           return (
-            <Marker
-              key={merchant.merchantId}
-              coordinate={{
-                latitude: merchant.latitude,
-                longitude: merchant.longitude,
-              }}
-              onPress={() => handleMarkerPress(merchant)}
+            <TouchableOpacity
+              style={styles.merchantCard}
+              onPress={() => setSelectedMerchant(merchant)}
             >
-              <View style={[
-                styles.markerContainer,
-                isSelected && styles.markerContainerSelected
-              ]}>
-                <View style={[
-                  styles.markerBadge,
-                  isSelected && styles.markerBadgeSelected
-                ]}>
-                  <Text style={styles.markerBadgeText}>{merchantOfferCount}</Text>
+              {merchant.logoUrl ? (
+                <Image source={{ uri: merchant.logoUrl }} style={styles.merchantLogo} />
+              ) : (
+                <View style={[styles.merchantLogo, styles.merchantLogoPlaceholder]}>
+                  <Ionicons name="restaurant" size={24} color="#16a34a" />
                 </View>
-                {merchant.logoUrl ? (
-                  <Image source={{ uri: merchant.logoUrl }} style={styles.markerImage} />
-                ) : (
-                  <View style={styles.markerImagePlaceholder}>
-                    <Ionicons name="restaurant" size={20} color="#16a34a" />
+              )}
+              <View style={styles.merchantInfo}>
+                <Text style={styles.merchantName}>{merchant.businessName}</Text>
+                <Text style={styles.merchantAddress}>{merchant.city || 'Location'}</Text>
+                <View style={styles.merchantMeta}>
+                  <Ionicons name="star" size={14} color="#fbbf24" />
+                  <Text style={styles.merchantRating}>{merchant.averageRating?.toFixed(1) || 'N/A'}</Text>
+                  <View style={styles.offerBadge}>
+                    <Text style={styles.merchantOffers}>{merchantOfferCount} offers</Text>
                   </View>
-                )}
+                </View>
               </View>
-            </Marker>
+              <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+            </TouchableOpacity>
           );
-        })}
-      </MapView>
-
-      {/* Center on User Button */}
-      <TouchableOpacity style={styles.centerButton} onPress={centerOnUser}>
-        <Ionicons name="locate" size={24} color="#16a34a" />
-      </TouchableOpacity>
+        }}
+        keyExtractor={(item) => item.merchantId}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Ionicons name="storefront-outline" size={64} color="#ccc" />
+            <Text style={styles.emptyText}>No restaurants nearby</Text>
+            <Text style={styles.emptySubtext}>Try expanding your search radius</Text>
+          </View>
+        }
+      />
 
       {/* Bottom Sheet */}
       {selectedMerchant && (
@@ -253,23 +188,49 @@ const MapScreen: React.FC = () => {
           </TouchableOpacity>
 
           <View style={styles.sheetHeader}>
-            {selectedMerchant.logoUrl && (
+            {selectedMerchant.logoUrl ? (
               <Image 
                 source={{ uri: selectedMerchant.logoUrl }} 
                 style={styles.sheetLogo}
               />
+            ) : (
+              <View style={[styles.sheetLogo, styles.merchantLogoPlaceholder]}>
+                <Ionicons name="restaurant" size={32} color="#16a34a" />
+              </View>
             )}
             <View style={styles.sheetInfo}>
               <Text style={styles.sheetName}>{selectedMerchant.businessName}</Text>
               <View style={styles.sheetMeta}>
                 <Ionicons name="location" size={14} color="#16a34a" />
                 <Text style={styles.sheetAddress}>
-                  {selectedMerchant.city || 'Bucharest'}
+                  {selectedMerchant.city || 'Location'}
+                </Text>
+              </View>
+              <View style={styles.sheetMeta}>
+                <Ionicons name="star" size={14} color="#fbbf24" />
+                <Text style={styles.sheetRating}>
+                  {selectedMerchant.averageRating?.toFixed(1) || 'N/A'} ({selectedMerchant.totalReviews || 0} reviews)
                 </Text>
               </View>
             </View>
           </View>
 
+          <TouchableOpacity
+            style={styles.viewRestaurantButton}
+            onPress={() => {
+              navigation.navigate('RestaurantDetail', {
+                merchantId: selectedMerchant.merchantId,
+                merchant: selectedMerchant,
+              });
+              setSelectedMerchant(null);
+            }}
+          >
+            <Text style={styles.viewRestaurantText}>View Restaurant</Text>
+            <Ionicons name="arrow-forward" size={18} color="#fff" />
+          </TouchableOpacity>
+
+          <Text style={styles.offersTitle}>Available Offers</Text>
+          
           <FlatList
             data={merchantOffers}
             renderItem={({ item: offer }) => (
@@ -316,7 +277,7 @@ const MapScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#f5f5f5',
   },
   topHeader: {
     backgroundColor: 'white',
@@ -326,74 +287,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
     zIndex: 10,
-  },
-  map: {
-    flex: 1,
-    zIndex: 1,
-  },
-  markerContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  markerContainerSelected: {
-    transform: [{ scale: 1.2 }],
-  },
-  markerBadge: {
-    position: 'absolute',
-    top: -5,
-    right: -5,
-    backgroundColor: '#16a34a',
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1,
-    borderWidth: 2,
-    borderColor: 'white',
-  },
-  markerBadgeSelected: {
-    backgroundColor: '#dc2626',
-  },
-  markerBadgeText: {
-    color: 'white',
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  markerImage: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#fff',
-    borderWidth: 3,
-    borderColor: '#16a34a',
-  },
-  markerImagePlaceholder: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#f0fdf4',
-    borderWidth: 3,
-    borderColor: '#16a34a',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  centerButton: {
-    position: 'absolute',
-    bottom: 100,
-    right: 16,
-    width: 48,
-    height: 48,
-    backgroundColor: 'white',
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-    zIndex: 5,
   },
   headerContent: {
     flexDirection: 'row',
@@ -436,12 +329,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
   },
   filterBadge: {
     position: 'absolute',
-    top: -4,
-    right: -4,
+    top: -2,
+    right: -2,
     backgroundColor: '#16a34a',
     width: 18,
     height: 18,
@@ -470,12 +362,93 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   filterPillOrange: {
-    backgroundColor: '#f59e0b',
+    backgroundColor: '#f97316',
   },
   filterPillText: {
     color: 'white',
     fontSize: 12,
     fontWeight: '500',
+  },
+  list: {
+    flex: 1,
+  },
+  listContent: {
+    padding: 16,
+  },
+  merchantCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  merchantLogo: {
+    width: 56,
+    height: 56,
+    borderRadius: 8,
+    backgroundColor: '#f3f4f6',
+  },
+  merchantLogoPlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  merchantInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  merchantName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1f2937',
+  },
+  merchantAddress: {
+    fontSize: 13,
+    color: '#6b7280',
+    marginTop: 2,
+  },
+  merchantMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+    gap: 4,
+  },
+  merchantRating: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#1f2937',
+    marginRight: 8,
+  },
+  offerBadge: {
+    backgroundColor: '#f0fdf4',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  merchantOffers: {
+    fontSize: 12,
+    color: '#16a34a',
+    fontWeight: '500',
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    paddingTop: 60,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#6b7280',
+    marginTop: 16,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#9ca3af',
+    marginTop: 4,
   },
   bottomSheet: {
     position: 'absolute',
@@ -485,7 +458,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: '60%',
+    maxHeight: '70%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.1,
@@ -504,7 +477,7 @@ const styles = StyleSheet.create({
   sheetHeader: {
     flexDirection: 'row',
     gap: 16,
-    marginBottom: 20,
+    marginBottom: 16,
   },
   sheetLogo: {
     width: 80,
@@ -514,7 +487,7 @@ const styles = StyleSheet.create({
   },
   sheetInfo: {
     flex: 1,
-    gap: 8,
+    gap: 6,
   },
   sheetName: {
     fontSize: 18,
@@ -529,6 +502,31 @@ const styles = StyleSheet.create({
   sheetAddress: {
     fontSize: 14,
     color: '#6b7280',
+  },
+  sheetRating: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  viewRestaurantButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#16a34a',
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginBottom: 16,
+    gap: 8,
+  },
+  viewRestaurantText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  offersTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 12,
   },
   offerItem: {
     flexDirection: 'row',

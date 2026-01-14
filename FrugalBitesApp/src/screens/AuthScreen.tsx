@@ -8,9 +8,12 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  Image,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { SubscriptionStatus } from '../types/auth';
+import { colors } from '../theme';
 
 const AuthScreen: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -69,8 +72,16 @@ const AuthScreen: React.FC = () => {
       <View style={styles.content}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.logo}>🍱 FrugalBites</Text>
-          <Text style={styles.tagline}>Fresh food, great savings</Text>
+          <View style={styles.logoContainer}>
+            <View style={styles.logoIcon}>
+              <Ionicons name="leaf" size={32} color={colors.eco} />
+              <View style={styles.savingsBadge}>
+                <Text style={styles.savingsBadgeText}>%</Text>
+              </View>
+            </View>
+          </View>
+          <Text style={styles.logo}>FrugalBites</Text>
+          <Text style={styles.tagline}>Save food. Save money.</Text>
         </View>
 
         {/* Toggle */}
@@ -210,6 +221,63 @@ const AuthScreen: React.FC = () => {
               </Text>
             )}
           </TouchableOpacity>
+
+          {/* Divider */}
+          <View style={styles.dividerContainer}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>or continue with</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          {/* Social Login Buttons */}
+          <View style={styles.socialContainer}>
+            {/* Google - DEV HACK: Quick login for testing */}
+            <TouchableOpacity 
+              style={styles.socialButton} 
+              disabled={isLoading}
+              onPress={async () => {
+                try {
+                  await login('john.doe@example.com', 'password123');
+                } catch (err) {
+                  Alert.alert('Login Failed', 'Test login failed');
+                }
+              }}
+            >
+              <View style={styles.socialIconContainer}>
+                <Text style={styles.googleIcon}>G</Text>
+              </View>
+              <Text style={styles.socialButtonText}>Google</Text>
+            </TouchableOpacity>
+
+            {/* Apple */}
+            <TouchableOpacity style={[styles.socialButton, styles.socialButtonApple]} disabled={isLoading}>
+              <View style={styles.socialIconContainer}>
+                <Ionicons name="logo-apple" size={20} color="#000" />
+              </View>
+              <Text style={styles.socialButtonText}>Apple</Text>
+            </TouchableOpacity>
+
+            {/* Facebook - DEV HACK: Login + reset onboarding for testing */}
+            <TouchableOpacity 
+              style={[styles.socialButton, styles.socialButtonFacebook]} 
+              disabled={isLoading}
+              onPress={async () => {
+                try {
+                  // Reset onboarding flag so it shows again
+                  const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+                  await AsyncStorage.removeItem('onboarding_complete');
+                  await login('john.doe@example.com', 'password123');
+                } catch (err) {
+                  Alert.alert('Login Failed', 'Test login failed');
+                }
+              }}
+            >
+              <View style={styles.socialIconContainer}>
+                <Ionicons name="logo-facebook" size={20} color="#1877F2" />
+              </View>
+              <Text style={styles.socialButtonText}>Facebook</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Footer */}
@@ -226,28 +294,57 @@ const AuthScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background.secondary,
   },
   content: {
     padding: 20,
-    paddingTop: 40,
+    paddingTop: 60,
   },
   header: {
     alignItems: 'center',
     marginBottom: 32,
   },
+  logoContainer: {
+    marginBottom: 12,
+  },
+  logoIcon: {
+    width: 72,
+    height: 72,
+    borderRadius: 20,
+    backgroundColor: colors.background.eco,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  savingsBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.savings,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  savingsBadgeText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: colors.text.inverse,
+  },
   logo: {
     fontSize: 32,
     fontWeight: 'bold',
+    color: colors.eco,
     marginBottom: 8,
   },
   tagline: {
     fontSize: 16,
-    color: '#666',
+    color: colors.text.secondary,
   },
   toggleContainer: {
     flexDirection: 'row',
-    backgroundColor: '#e5e7eb',
+    backgroundColor: colors.neutral[200],
     borderRadius: 12,
     padding: 4,
     marginBottom: 32,
@@ -259,7 +356,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   toggleButtonActive: {
-    backgroundColor: 'white',
+    backgroundColor: colors.background.primary,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -269,13 +366,13 @@ const styles = StyleSheet.create({
   toggleText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#999',
+    color: colors.text.tertiary,
   },
   toggleTextActive: {
-    color: '#333',
+    color: colors.text.primary,
   },
   formContainer: {
-    backgroundColor: 'white',
+    backgroundColor: colors.background.primary,
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
@@ -286,17 +383,18 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: colors.text.primary,
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: colors.border.medium,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 16,
-    color: '#333',
+    color: colors.text.primary,
+    backgroundColor: colors.background.primary,
   },
   vipContainer: {
     marginBottom: 20,
@@ -306,31 +404,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 12,
     borderWidth: 2,
-    borderColor: '#e5e7eb',
+    borderColor: colors.border.light,
     borderRadius: 8,
   },
   vipOptionSelected: {
-    borderColor: '#fbbf24',
-    backgroundColor: '#fffbeb',
+    borderColor: colors.secondary[400],
+    backgroundColor: colors.background.savings,
   },
   vipCheckbox: {
     width: 24,
     height: 24,
     borderWidth: 2,
-    borderColor: '#d1d5db',
+    borderColor: colors.border.medium,
     borderRadius: 6,
     marginRight: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   vipCheckboxSelected: {
-    borderColor: '#fbbf24',
-    backgroundColor: '#fbbf24',
+    borderColor: colors.secondary[400],
+    backgroundColor: colors.secondary[400],
   },
   checkmark: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: 'white',
+    color: colors.text.inverse,
   },
   vipInfo: {
     flex: 1,
@@ -338,26 +436,26 @@ const styles = StyleSheet.create({
   vipTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: colors.text.primary,
   },
   vipSubtitle: {
     fontSize: 12,
-    color: '#666',
+    color: colors.text.secondary,
     marginTop: 2,
   },
   errorContainer: {
-    backgroundColor: '#fee2e2',
+    backgroundColor: colors.error.light,
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,
   },
   errorText: {
-    color: '#dc2626',
+    color: colors.error.main,
     fontSize: 14,
     fontWeight: '500',
   },
   submitButton: {
-    backgroundColor: '#2563eb',
+    backgroundColor: colors.eco,
     borderRadius: 8,
     paddingVertical: 14,
     alignItems: 'center',
@@ -367,17 +465,74 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   submitButtonText: {
-    color: 'white',
+    color: colors.text.inverse,
     fontSize: 16,
     fontWeight: '600',
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.border.light,
+  },
+  dividerText: {
+    marginHorizontal: 16,
+    color: colors.text.tertiary,
+    fontSize: 14,
+  },
+  socialContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  socialButton: {
+    flex: 1,
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border.light,
+    backgroundColor: colors.background.primary,
+  },
+  socialButtonApple: {
+    borderColor: colors.neutral[300],
+  },
+  socialButtonFacebook: {
+    borderColor: '#1877F2',
+    borderWidth: 1,
+  },
+  socialIconContainer: {
+    width: 28,
+    height: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  googleIcon: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#4285F4',
+  },
+  socialButtonText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: colors.text.secondary,
   },
   footer: {
     alignItems: 'center',
     marginTop: 20,
+    marginBottom: 40,
   },
   footerText: {
     fontSize: 12,
-    color: '#666',
+    color: colors.text.tertiary,
     textAlign: 'center',
   },
 });

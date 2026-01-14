@@ -6,6 +6,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { OfferDTO } from '../types/offer';
 import { RootStackParamList } from '../App';
 import { useCart } from '../context/CartContext';
+import { colors } from '../theme';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -62,7 +63,7 @@ const OfferCard: React.FC<OfferCardProps> = ({ offer, onPress }) => {
             <Image source={{ uri: offer.merchantLogoUrl }} style={styles.merchantLogo} />
           )}
           <Text style={styles.merchantName}>{offer.merchantName}</Text>
-          {offer.merchantRating && (
+          {offer.merchantRating != null && offer.merchantRating > 0 && (
             <Text style={styles.rating}>⭐ {offer.merchantRating.toFixed(1)}</Text>
           )}
         </View>
@@ -89,7 +90,7 @@ const OfferCard: React.FC<OfferCardProps> = ({ offer, onPress }) => {
               minute: '2-digit'
             })}
           </Text>
-          {offer.distanceKm && (
+          {offer.distanceKm != null && offer.distanceKm > 0 && (
             <Text style={styles.distance}>{formatDistance(offer.distanceKm)}</Text>
           )}
         </View>
@@ -110,12 +111,12 @@ const OfferCard: React.FC<OfferCardProps> = ({ offer, onPress }) => {
 const styles = StyleSheet.create({
   card: {
     flex: 1,
-    backgroundColor: 'white',
-    borderRadius: 8,
+    backgroundColor: colors.background.card,
+    borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
     elevation: 3,
     margin: 4,
     overflow: 'hidden',
@@ -124,7 +125,7 @@ const styles = StyleSheet.create({
   imageContainer: {
     position: 'relative',
     height: 140,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: colors.neutral[100],
   },
   image: {
     width: '100%',
@@ -136,20 +137,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   placeholderText: {
-    color: '#999',
+    color: colors.text.tertiary,
     fontSize: 16,
   },
   discountBadge: {
     position: 'absolute',
     top: 8,
     left: 8,
-    backgroundColor: '#dc2626',
+    backgroundColor: colors.secondary[500],
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
   },
   discountText: {
-    color: 'white',
+    color: colors.text.inverse,
     fontSize: 12,
     fontWeight: 'bold',
   },
@@ -170,16 +171,17 @@ const styles = StyleSheet.create({
   },
   merchantName: {
     fontSize: 14,
-    color: '#666',
+    color: colors.text.secondary,
     flex: 1,
   },
   rating: {
     fontSize: 14,
-    color: '#fbbf24',
+    color: colors.rating,
   },
   foodName: {
     fontSize: 14,
     fontWeight: 'bold',
+    color: colors.text.primary,
     marginBottom: 6,
     lineHeight: 18,
   },
@@ -191,17 +193,17 @@ const styles = StyleSheet.create({
   discountedPrice: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#16a34a',
+    color: colors.eco,
     marginRight: 6,
   },
   originalPrice: {
     fontSize: 12,
-    color: '#999',
+    color: colors.text.tertiary,
     textDecorationLine: 'line-through',
   },
   quantity: {
     fontSize: 12,
-    color: '#666',
+    color: colors.text.secondary,
     marginBottom: 6,
   },
   footer: {
@@ -211,11 +213,11 @@ const styles = StyleSheet.create({
   },
   pickupTime: {
     fontSize: 12,
-    color: '#666',
+    color: colors.text.secondary,
   },
   distance: {
     fontSize: 12,
-    color: '#666',
+    color: colors.text.secondary,
   },
   addToCartButton: {
     position: 'absolute',
@@ -224,7 +226,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#16a34a',
+    backgroundColor: colors.eco,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',

@@ -100,8 +100,8 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     dbContext.Database.EnsureCreated();
 
-    // Seed sample data if database is empty
-    if (!dbContext.Offers.Any())
+    // Seed sample data if test user doesn't exist
+    if (!dbContext.Users.Any(u => u.Email == "john.doe@example.com"))
     {
         SeedSampleData(dbContext);
     }
@@ -172,7 +172,9 @@ void SeedSampleData(ApplicationDbContext context)
         Latitude = 37.7749m,
         Longitude = -122.4194m,
         IsVerified = true,
-        CreatedAt = DateTime.UtcNow
+        CreatedAt = DateTime.UtcNow,
+        LogoUrl = "https://images.unsplash.com/photo-1517433670267-30f41c40f0f5?w=100&h=100&fit=crop",
+        CoverImageUrl = "https://images.unsplash.com/photo-1517433670267-30f41c40f0f5?w=500&h=200&fit=crop"
     };
 
     context.Merchants.Add(merchant);
@@ -197,7 +199,8 @@ void SeedSampleData(ApplicationDbContext context)
             PickupStartTime = DateTime.UtcNow.AddHours(1),
             PickupEndTime = DateTime.UtcNow.AddHours(6),
             IsAvailable = true,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            ImageUrl = "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=300&h=200&fit=crop"
         },
         new FrugalBites.Models.Entities.Offer
         {
@@ -215,7 +218,8 @@ void SeedSampleData(ApplicationDbContext context)
             PickupStartTime = DateTime.UtcNow.AddHours(2),
             PickupEndTime = DateTime.UtcNow.AddHours(10),
             IsAvailable = true,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            ImageUrl = "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=300&h=200&fit=crop"
         },
         new FrugalBites.Models.Entities.Offer
         {
@@ -233,7 +237,8 @@ void SeedSampleData(ApplicationDbContext context)
             PickupStartTime = DateTime.UtcNow.AddHours(3),
             PickupEndTime = DateTime.UtcNow.AddHours(12),
             IsAvailable = true,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            ImageUrl = "https://images.unsplash.com/photo-1585478259715-4d5c0cb1e7bc?w=300&h=200&fit=crop"
         }
     };
 
