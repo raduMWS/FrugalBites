@@ -52,14 +52,14 @@ getStoredToken().then(token => {
 // Configure base URL based on platform
 const getBaseURL = () => {
   if (__DEV__) {
-    // In development, use different URLs for different platforms
-    if (Platform.OS === 'android') {
-      // Android emulator uses 10.0.2.2 to reach host machine
-      return 'http://10.0.2.2:3000/api';
-    } else {
-      // iOS simulator can use localhost, but for physical devices use your computer's IP
-      return 'http://localhost:3000/api';
-    }
+    // Your computer's local network IP - update this if your IP changes
+    const LOCAL_IP = '192.168.1.53';
+    
+    // For physical devices, always use the network IP
+    // For simulators/emulators, use localhost or special address
+    // Since it's hard to reliably detect physical device vs simulator,
+    // we'll just always use the network IP which works for both
+    return `http://${LOCAL_IP}:3000/api`;
   } else {
     // In production, use your actual API URL
     return 'https://your-api-domain.com/api';

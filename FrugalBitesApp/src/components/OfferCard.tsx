@@ -53,6 +53,15 @@ const OfferCard: React.FC<OfferCardProps> = ({ offer, onPress }) => {
         <View style={styles.discountBadge}>
           <Text style={styles.discountText}>-{offer.discountPercentage}%</Text>
         </View>
+
+        {/* Add to Cart Button */}
+        <TouchableOpacity 
+          style={styles.addToCartButton}
+          onPress={handleAddToCart}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="add" size={20} color="white" />
+        </TouchableOpacity>
       </View>
 
       {/* Content */}
@@ -94,15 +103,6 @@ const OfferCard: React.FC<OfferCardProps> = ({ offer, onPress }) => {
             <Text style={styles.distance}>{formatDistance(offer.distanceKm)}</Text>
           )}
         </View>
-
-        {/* Add to Cart Button */}
-        <TouchableOpacity 
-          style={styles.addToCartButton}
-          onPress={handleAddToCart}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="add" size={20} color="white" />
-        </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );
@@ -231,9 +231,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 4,
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
 });
 

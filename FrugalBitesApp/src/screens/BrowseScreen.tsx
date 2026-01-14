@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
@@ -64,20 +64,29 @@ const BrowseScreen: React.FC = () => {
   });
 
   const categories = [
-    { id: 'all', label: 'All', icon: 'apps' },
-    { id: 'food', label: 'Food', icon: 'restaurant' },
-    { id: 'bakery', label: 'Bakery', icon: 'cafe' },
-    { id: 'grocery', label: 'Grocery', icon: 'cart' },
-    { id: 'vegan', label: 'Vegan', icon: 'leaf' },
+    { id: 'all', label: 'All', icon: 'apps', apiValue: null },
+    { id: 'food', label: 'Food', icon: 'restaurant', apiValue: [1, 2] }, // RESTAURANT, PREPARED_MEALS
+    { id: 'bakery', label: 'Bakery', icon: 'cafe', apiValue: [0] }, // BAKERY
+    { id: 'grocery', label: 'Grocery', icon: 'cart', apiValue: [3] }, // GROCERIES
+    { id: 'vegan', label: 'Vegan', icon: 'leaf', apiValue: null }, // Special case - uses dietary field
   ];
 
   // Filter offers based on search and category
   const filteredOffers = offers?.filter(offer => {
     const matchesSearch = offer.foodName.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          offer.merchantName.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || 
-                           offer.category.toLowerCase().includes(selectedCategory.toLowerCase()) ||
-                           (selectedCategory === 'vegan' && offer.dietary === DietaryType.VEGAN);
+    
+    const selectedCat = categories.find(c => c.id === selectedCategory);
+    let matchesCategory = selectedCategory === 'all';
+    
+    if (selectedCategory === 'vegan') {
+      // Check dietary field for vegan (1 = VEGAN based on API response)
+      matchesCategory = offer.dietary === 1 || offer.dietary === DietaryType.VEGAN;
+    } else if (selectedCat?.apiValue) {
+      // Category is returned as a number from the API
+      matchesCategory = selectedCat.apiValue.includes(offer.category as unknown as number);
+    }
+    
     return matchesSearch && matchesCategory;
   }) || [];
 
@@ -129,11 +138,7 @@ const BrowseScreen: React.FC = () => {
 
       {/* Categories */}
       {viewMode === 'offers' && (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoriesContainer}
-        >
+        <View style={styles.categoriesWrapper}>
           {categories.map((category) => (
             <TouchableOpacity
               key={category.id}
@@ -145,7 +150,7 @@ const BrowseScreen: React.FC = () => {
             >
               <Ionicons
                 name={category.icon as any}
-                size={18}
+                size={16}
                 color={selectedCategory === category.id ? 'white' : '#16a34a'}
               />
               <Text
@@ -158,7 +163,7 @@ const BrowseScreen: React.FC = () => {
               </Text>
             </TouchableOpacity>
           ))}
-        </ScrollView>
+        </View>
       )}
 
       {/* Content */}
@@ -168,6 +173,7 @@ const BrowseScreen: React.FC = () => {
         </View>
       ) : viewMode === 'offers' ? (
         <FlatList
+          key="offers-grid"
           data={filteredOffers}
           renderItem={({ item }) => (
             <OfferCard
@@ -204,10 +210,12 @@ const BrowseScreen: React.FC = () => {
         />
       ) : (
         <FlatList
+          key="restaurants-list"
           data={filteredMerchants}
           renderItem={({ item }) => (
             <RestaurantCard
               restaurant={item}
+              variant="full"
               onPress={() => {
                 navigation.navigate('RestaurantDetail', {
                   merchantId: item.merchantId,
@@ -281,20 +289,22 @@ const styles = StyleSheet.create({
   viewModeTextActive: {
     color: 'white',
   },
-  categoriesContainer: {
+  categoriesWrapper: {
+    flexDirection: 'row',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 10,
     gap: 8,
+    backgroundColor: 'white',
   },
   categoryChip: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 12,
     backgroundColor: '#e8f5e9',
-    marginRight: 8,
-    gap: 6,
+    gap: 4,
   },
   categoryChipActive: {
     backgroundColor: '#16a34a',

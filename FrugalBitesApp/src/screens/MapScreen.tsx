@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, FlatList } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, FlatList, Modal, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import Slider from '@react-native-community/slider';
 import * as Location from 'expo-location';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
@@ -22,6 +23,7 @@ const MapScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedMerchant, setSelectedMerchant] = useState<MerchantDTO | null>(null);
+  const [showFilterModal, setShowFilterModal] = useState(false);
   const [filters, setFilters] = useState({
     hideSoldOut: true,
     bonapp: true,
@@ -91,7 +93,7 @@ const MapScreen: React.FC = () => {
             <Ionicons name="chevron-down" size={16} color="#333" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.filterButton}>
+          <TouchableOpacity style={styles.filterButton} onPress={() => setShowFilterModal(true)}>
             <Ionicons name="options" size={20} color="#333" />
             <View style={styles.filterBadge}>
               <Text style={styles.filterBadgeText}>
@@ -270,6 +272,107 @@ const MapScreen: React.FC = () => {
           />
         </View>
       )}
+
+      {/* Filter Modal */}
+      <Modal
+        visible={showFilterModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowFilterModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Filters</Text>
+              <TouchableOpacity onPress={() => setShowFilterModal(false)}>
+                <Ionicons name="close" size={24} color="#333" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Radius Slider */}
+            <View style={styles.filterSection}>
+              <Text style={styles.filterSectionTitle}>Search Radius</Text>
+              <View style={styles.radiusContainer}>
+                <Slider
+                  style={styles.slider}
+                  minimumValue={1}
+                  maximumValue={20}
+                  step={1}
+                  value={radius}
+                  onValueChange={setRadius}
+                  minimumTrackTintColor="#16a34a"
+                  maximumTrackTintColor="#e5e7eb"
+                  thumbTintColor="#16a34a"
+                />
+                <Text style={styles.radiusValue}>{radius} km</Text>
+              </View>
+            </View>
+
+            {/* Filter Toggles */}
+            <View style={styles.filterSection}>
+              <Text style={styles.filterSectionTitle}>Show Results</Text>
+              
+              <View style={styles.filterRow}>
+                <View style={styles.filterRowInfo}>
+                  <Ionicons name="eye-off-outline" size={20} color="#6b7280" />
+                  <Text style={styles.filterRowText}>Hide sold-out items</Text>
+                </View>
+                <Switch
+                  value={filters.hideSoldOut}
+                  onValueChange={(value) => setFilters({ ...filters, hideSoldOut: value })}
+                  trackColor={{ false: '#e5e7eb', true: '#bbf7d0' }}
+                  thumbColor={filters.hideSoldOut ? '#16a34a' : '#9ca3af'}
+                />
+              </View>
+
+              <View style={styles.filterRow}>
+                <View style={styles.filterRowInfo}>
+                  <Ionicons name="gift-outline" size={20} color="#16a34a" />
+                  <Text style={styles.filterRowText}>Surprise bags</Text>
+                </View>
+                <Switch
+                  value={filters.bonapp}
+                  onValueChange={(value) => setFilters({ ...filters, bonapp: value })}
+                  trackColor={{ false: '#e5e7eb', true: '#bbf7d0' }}
+                  thumbColor={filters.bonapp ? '#16a34a' : '#9ca3af'}
+                />
+              </View>
+
+              <View style={styles.filterRow}>
+                <View style={styles.filterRowInfo}>
+                  <Ionicons name="pricetag-outline" size={20} color="#f97316" />
+                  <Text style={styles.filterRowText}>Deals & discounts</Text>
+                </View>
+                <Switch
+                  value={filters.deal}
+                  onValueChange={(value) => setFilters({ ...filters, deal: value })}
+                  trackColor={{ false: '#e5e7eb', true: '#fed7aa' }}
+                  thumbColor={filters.deal ? '#f97316' : '#9ca3af'}
+                />
+              </View>
+            </View>
+
+            {/* Reset & Apply Buttons */}
+            <View style={styles.modalButtons}>
+              <TouchableOpacity 
+                style={styles.resetButton}
+                onPress={() => {
+                  setFilters({ hideSoldOut: true, bonapp: true, deal: true });
+                  setRadius(5);
+                }}
+              >
+                <Text style={styles.resetButtonText}>Reset</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.applyButton}
+                onPress={() => setShowFilterModal(false)}
+              >
+                <Text style={styles.applyButtonText}>Apply Filters</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -585,6 +688,105 @@ const styles = StyleSheet.create({
   noOffersText: {
     fontSize: 14,
     color: '#9ca3af',
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1f2937',
+  },
+  filterSection: {
+    marginBottom: 24,
+  },
+  filterSectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6b7280',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 12,
+  },
+  radiusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  slider: {
+    flex: 1,
+    height: 40,
+  },
+  radiusValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#16a34a',
+    minWidth: 50,
+    textAlign: 'right',
+  },
+  filterRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  filterRowInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  filterRowText: {
+    fontSize: 16,
+    color: '#1f2937',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+  },
+  resetButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    alignItems: 'center',
+  },
+  resetButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+  applyButton: {
+    flex: 2,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#16a34a',
+    alignItems: 'center',
+  },
+  applyButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'white',
   },
 });
 

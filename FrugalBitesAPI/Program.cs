@@ -20,6 +20,12 @@ try
     Log.Information("Starting FrugalBites API");
 
     var builder = WebApplication.CreateBuilder(args);
+    
+    // Configure Kestrel to listen on all interfaces for mobile device access
+    builder.WebHost.ConfigureKestrel(serverOptions =>
+    {
+        serverOptions.ListenAnyIP(3000); // Listen on all interfaces
+    });
 
     // Use Serilog for logging
     builder.Host.UseSerilog();

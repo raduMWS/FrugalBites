@@ -363,6 +363,7 @@ const styles = StyleSheet.create({
   },
   offersGrid: {
     paddingHorizontal: 4,
+    paddingBottom: 100,
   },
   loadingContainer: {
     flex: 1,

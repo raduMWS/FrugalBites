@@ -26,6 +26,7 @@ import WishlistScreen from './screens/WishlistScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import RestaurantDetailScreen from './screens/RestaurantDetailScreen';
 import OfferDetailScreen from './screens/OfferDetailScreen';
+import FloatingCartButton from './components/FloatingCartButton';
 import { MerchantDTO } from './types/merchant';
 
 // Conditionally import Stripe (only works in development builds, not Expo Go)
@@ -168,37 +169,40 @@ const RootNavigator = () => {
     <NavigationContainer>
       <StatusBar barStyle="dark-content" />
       {isSignedIn ? (
-        <Stack.Navigator>
-          <Stack.Screen
-            name="MainTabs"
-            component={TabNavigator}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="RestaurantDetail"
-            component={RestaurantDetailScreen}
-            options={{
-              title: 'Restaurant',
-              headerBackTitle: 'Back',
-            }}
-          />
-          <Stack.Screen
-            name="OfferDetail"
-            component={OfferDetailScreen}
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name="Cart"
-            component={CartScreen}
-            options={{
-              presentation: 'modal',
-              title: 'My Cart',
-              headerBackTitle: 'Close',
-            }}
-          />
-        </Stack.Navigator>
+        <View style={{ flex: 1 }}>
+          <Stack.Navigator>
+            <Stack.Screen
+              name="MainTabs"
+              component={TabNavigator}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="RestaurantDetail"
+              component={RestaurantDetailScreen}
+              options={{
+                title: 'Restaurant',
+                headerBackTitle: 'Back',
+              }}
+            />
+            <Stack.Screen
+              name="OfferDetail"
+              component={OfferDetailScreen}
+              options={{
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="Cart"
+              component={CartScreen}
+              options={{
+                presentation: 'modal',
+                title: 'My Cart',
+                headerBackTitle: 'Close',
+              }}
+            />
+          </Stack.Navigator>
+          <FloatingCartButton />
+        </View>
       ) : (
         <Stack.Navigator initialRouteName="Auth">
           <Stack.Screen
