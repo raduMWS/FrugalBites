@@ -103,3 +103,6 @@ Thumbs.db
 
 # JetBrains
 *.DotSettings.user
+
+# Local utility projects
+HashGenerator/
