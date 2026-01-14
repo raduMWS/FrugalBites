@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "FrugalBites Vendor",
+    "slug": "frugalbites-vendor",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#16a34a"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.frugalbites.vendor"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#16a34a"
+      },
+      "package": "com.frugalbites.vendor"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
