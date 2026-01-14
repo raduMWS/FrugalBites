@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Alert, Mo
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
+import OrdersScreen from './OrdersScreen';
 
 interface MenuItem {
   icon: keyof typeof Ionicons.glyphMap;
@@ -18,37 +19,6 @@ const ProfileScreen: React.FC = () => {
   const [isVIP, setIsVIP] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [ordersModalVisible, setOrdersModalVisible] = useState(false);
-  const [activeTab, setActiveTab] = useState<'active' | 'past'>('active');
-
-  const mockActiveOrders = [
-    {
-      id: '1',
-      restaurant: 'Pizza Roma',
-      item: 'Margherita Pizza',
-      price: 20,
-      status: 'Ready for pickup',
-      pickupTime: '14:00 - 15:00',
-    },
-  ];
-
-  const mockPastOrders = [
-    {
-      id: '2',
-      restaurant: 'Sushi Palace',
-      item: 'Salmon Sushi Roll',
-      price: 30,
-      status: 'Completed',
-      date: '13 Jan 2026',
-    },
-    {
-      id: '3',
-      restaurant: 'Burger House',
-      item: 'Classic Cheeseburger',
-      price: 24,
-      status: 'Completed',
-      date: '12 Jan 2026',
-    },
-  ];
 
   const handleVIPSubscription = () => {
     Alert.alert(
@@ -246,77 +216,7 @@ const ProfileScreen: React.FC = () => {
         animationType="slide"
         presentationStyle="pageSheet"
       >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={() => setOrdersModalVisible(false)}>
-              <Ionicons name="close" size={28} color="#333" />
-            </TouchableOpacity>
-            <Text style={styles.modalTitle}>My Orders</Text>
-            <View style={{ width: 28 }} />
-          </View>
-
-          <View style={styles.tabContainer}>
-            <TouchableOpacity
-              style={[styles.tab, activeTab === 'active' && styles.tabActive]}
-              onPress={() => setActiveTab('active')}
-            >
-              <Text style={[styles.tabText, activeTab === 'active' && styles.tabTextActive]}>
-                Active
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.tab, activeTab === 'past' && styles.tabActive]}
-              onPress={() => setActiveTab('past')}
-            >
-              <Text style={[styles.tabText, activeTab === 'past' && styles.tabTextActive]}>
-                Past Orders
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView style={styles.ordersContent}>
-            {activeTab === 'active' ? (
-              mockActiveOrders.length > 0 ? (
-                mockActiveOrders.map((order) => (
-                  <View key={order.id} style={styles.orderCard}>
-                    <View style={styles.orderHeader}>
-                      <Text style={styles.orderRestaurant}>{order.restaurant}</Text>
-                      <View style={styles.orderStatusBadge}>
-                        <Text style={styles.orderStatusText}>{order.status}</Text>
-                      </View>
-                    </View>
-                    <Text style={styles.orderItem}>{order.item}</Text>
-                    <View style={styles.orderFooter}>
-                      <Text style={styles.orderPrice}>{order.price} RON</Text>
-                      <Text style={styles.orderTime}>Pickup: {order.pickupTime}</Text>
-                    </View>
-                  </View>
-                ))
-              ) : (
-                <View style={styles.emptyOrders}>
-                  <Ionicons name="receipt-outline" size={60} color="#ccc" />
-                  <Text style={styles.emptyText}>No active orders</Text>
-                </View>
-              )
-            ) : (
-              mockPastOrders.map((order) => (
-                <View key={order.id} style={styles.orderCard}>
-                  <View style={styles.orderHeader}>
-                    <Text style={styles.orderRestaurant}>{order.restaurant}</Text>
-                    <Text style={styles.orderDate}>{order.date}</Text>
-                  </View>
-                  <Text style={styles.orderItem}>{order.item}</Text>
-                  <View style={styles.orderFooter}>
-                    <Text style={styles.orderPrice}>{order.price} RON</Text>
-                    <TouchableOpacity style={styles.reorderButton}>
-                      <Text style={styles.reorderText}>Reorder</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ))
-            )}
-          </ScrollView>
-        </SafeAreaView>
+        <OrdersScreen onClose={() => setOrdersModalVisible(false)} />
       </Modal>
     </SafeAreaView>
   );
@@ -496,115 +396,6 @@ const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    backgroundColor: 'white',
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-  },
-  tabActive: {
-    borderBottomColor: '#16a34a',
-  },
-  tabText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#999',
-  },
-  tabTextActive: {
-    color: '#16a34a',
-  },
-  ordersContent: {
-    flex: 1,
-    padding: 16,
-  },
-  orderCard: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-  },
-  orderHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  orderRestaurant: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  orderStatusBadge: {
-    backgroundColor: '#dcfce7',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  orderStatusText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#16a34a',
-  },
-  orderDate: {
-    fontSize: 12,
-    color: '#999',
-  },
-  orderItem: {
-    fontSize: 14,
-    color: '#666',
-  },
-  orderFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 12,
-  },
-  orderPrice: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#16a34a',
-  },
-  orderTime: {
-    fontSize: 12,
-    color: '#666',
-  },
-  reorderButton: {
-    backgroundColor: '#16a34a',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  reorderText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: 'white',
-  },
-  emptyOrders: {
-    alignItems: 'center',
-    paddingVertical: 60,
   },
   emptyText: {
     fontSize: 16,

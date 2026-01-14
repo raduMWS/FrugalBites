@@ -235,4 +235,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default OfferCard;export default OfferCard;
+export default OfferCard;

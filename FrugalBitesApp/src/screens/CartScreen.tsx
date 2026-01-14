@@ -1,34 +1,90 @@
-import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Alert, ActivityIndicator, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useCart } from '../context/CartContext';
+import { orderService } from '../services/api';
+import { logger } from '../services/logger';
+import PaymentSheet from '../components/PaymentSheet';
+
+const cartLogger = logger.withContext('Cart');
 
 interface CartScreenProps {
   onClose: () => void;
 }
 
+interface PendingPayment {
+  orderId: string;
+  amount: number;
+}
+
 const CartScreen: React.FC<CartScreenProps> = ({ onClose }) => {
   const { items, removeFromCart, updateQuantity, getTotal, clearCart } = useCart();
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
+  const [pendingPayment, setPendingPayment] = useState<PendingPayment | null>(null);
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (items.length === 0) {
       Alert.alert('Empty Cart', 'Add some items to your cart first!');
       return;
     }
-    Alert.alert(
-      'Order Placed!',
-      `Your order for ${getTotal().toFixed(2)} RON has been placed. Pick up your items at the scheduled time.`,
-      [
-        {
-          text: 'OK',
-          onPress: () => {
-            clearCart();
-            onClose();
-          },
-        },
-      ]
-    );
+
+    setIsLoading(true);
+    cartLogger.info('Starting checkout', { itemCount: items.length, total: getTotal() });
+
+    try {
+      // For now, create order for the first item (TODO: support multiple items per order)
+      // In a production app, you might want to create a single order with multiple items
+      const firstItem = items[0];
+      const order = await orderService.createOrder({
+        offerId: firstItem.offer.offerId,
+        quantity: firstItem.quantity,
+      });
+
+      cartLogger.info('Order created, proceeding to payment', { orderId: order.orderId });
+
+      // Convert price to cents for Stripe
+      const amountInCents = Math.round(order.totalPrice * 100);
+
+      setPendingPayment({
+        orderId: order.orderId,
+        amount: amountInCents,
+      });
+      setShowPayment(true);
+    } catch (error: any) {
+      cartLogger.error('Order creation failed', { error: error.message });
+      
+      const errorMessage = error.response?.data?.message || error.response?.data || 'Failed to create order. Please try again.';
+      Alert.alert('Order Failed', errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePaymentSuccess = () => {
+    cartLogger.info('Payment successful');
+    setShowPayment(false);
+    setPendingPayment(null);
+    clearCart();
+    onClose();
+  };
+
+  const handlePaymentCancel = async () => {
+    cartLogger.info('Payment cancelled');
+    setShowPayment(false);
+    
+    // Optionally cancel the order if payment is cancelled
+    if (pendingPayment) {
+      try {
+        await orderService.cancelOrder(pendingPayment.orderId, { reason: 'Payment cancelled by user' });
+        cartLogger.info('Pending order cancelled', { orderId: pendingPayment.orderId });
+      } catch (error) {
+        cartLogger.error('Failed to cancel pending order', { error });
+      }
+    }
+    
+    setPendingPayment(null);
   };
 
   const renderCartItem = ({ item }: { item: { offer: any; quantity: number } }) => (
@@ -95,12 +151,41 @@ const CartScreen: React.FC<CartScreenProps> = ({ onClose }) => {
               <Text style={styles.totalLabel}>Total</Text>
               <Text style={styles.totalAmount}>{getTotal().toFixed(2)} RON</Text>
             </View>
-            <TouchableOpacity style={styles.checkoutButton} onPress={handleCheckout}>
-              <Text style={styles.checkoutText}>Place Order</Text>
+            <TouchableOpacity 
+              style={[styles.checkoutButton, isLoading && styles.checkoutButtonDisabled]} 
+              onPress={handleCheckout}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <Text style={styles.checkoutText}>Checkout</Text>
+              )}
             </TouchableOpacity>
           </View>
         </>
       )}
+
+      {/* Payment Modal */}
+      <Modal
+        visible={showPayment}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={handlePaymentCancel}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            {pendingPayment && (
+              <PaymentSheet
+                orderId={pendingPayment.orderId}
+                amount={pendingPayment.amount}
+                onSuccess={handlePaymentSuccess}
+                onCancel={handlePaymentCancel}
+              />
+            )}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -239,10 +324,24 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
   },
+  checkoutButtonDisabled: {
+    backgroundColor: '#9ca3af',
+  },
   checkoutText: {
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '70%',
   },
 });
 

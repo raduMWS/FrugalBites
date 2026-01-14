@@ -2,7 +2,7 @@
  * FrugalBites Mobile App
  */
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StatusBar, StyleSheet, ActivityIndicator, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -10,9 +10,11 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { StripeProvider } from '@stripe/stripe-react-native';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
+import { paymentService } from './services/api';
 import AuthScreen from './screens/AuthScreen';
 import HomeScreen from './screens/HomeScreen';
 import CartScreen from './screens/CartScreen';
@@ -173,17 +175,47 @@ const RootNavigator = () => {
 };
 
 function App() {
+  const [stripePublishableKey, setStripePublishableKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Fetch Stripe publishable key from backend
+    const fetchStripeConfig = async () => {
+      try {
+        const config = await paymentService.getConfig();
+        setStripePublishableKey(config.publishableKey);
+      } catch (error) {
+        console.error('Failed to fetch Stripe config:', error);
+        // Use a fallback for development - replace with your test key
+        setStripePublishableKey('pk_test_placeholder');
+      }
+    };
+    fetchStripeConfig();
+  }, []);
+
+  // Don't render until we have the Stripe key
+  if (!stripePublishableKey) {
+    return (
+      <SafeAreaProvider>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#16a34a" />
+        </View>
+      </SafeAreaProvider>
+    );
+  }
+
   return (
     <SafeAreaProvider>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <CartProvider>
-            <WishlistProvider>
-              <RootNavigator />
-            </WishlistProvider>
-          </CartProvider>
-        </AuthProvider>
-      </QueryClientProvider>
+      <StripeProvider publishableKey={stripePublishableKey}>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <CartProvider>
+              <WishlistProvider>
+                <RootNavigator />
+              </WishlistProvider>
+            </CartProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </StripeProvider>
     </SafeAreaProvider>
   );
 }

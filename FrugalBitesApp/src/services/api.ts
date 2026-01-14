@@ -3,6 +3,14 @@ import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import { OfferDTO, OfferCategory, DietaryType } from '../types/offer';
 import { AuthResponse, LoginRequest, SignUpRequest } from '../types/auth';
+import { OrderDTO, CreateOrderRequest, CancelOrderRequest } from '../types/order';
+import {
+  PaymentConfig,
+  PaymentIntentResponse,
+  PaymentConfirmationResponse,
+  RefundRequest,
+  RefundResponse,
+} from '../types/payment';
 import { logger } from './logger';
 
 // Create a contextual logger for API calls
@@ -160,6 +168,53 @@ export const merchantService = {
 
   async getMerchant(merchantId: string): Promise<any> {
     const response = await api.get(`/merchants/${merchantId}`);
+    return response.data;
+  },
+};
+
+// Orders Service
+export const orderService = {
+  async getMyOrders(): Promise<OrderDTO[]> {
+    const response = await api.get('/orders');
+    return response.data;
+  },
+
+  async getOrder(orderId: string): Promise<OrderDTO> {
+    const response = await api.get(`/orders/${orderId}`);
+    return response.data;
+  },
+
+  async createOrder(request: CreateOrderRequest): Promise<OrderDTO> {
+    const response = await api.post('/orders', request);
+    return response.data;
+  },
+
+  async cancelOrder(orderId: string, request?: CancelOrderRequest): Promise<OrderDTO> {
+    const response = await api.post(`/orders/${orderId}/cancel`, request || {});
+    return response.data;
+  },
+};
+
+// Payments Service
+export const paymentService = {
+  async getConfig(): Promise<PaymentConfig> {
+    const response = await api.get('/payments/config');
+    return response.data;
+  },
+
+  async createPaymentIntent(orderId: string): Promise<PaymentIntentResponse> {
+    const response = await api.post('/payments/create-payment-intent', { orderId });
+    return response.data;
+  },
+
+  async confirmPayment(paymentIntentId: string): Promise<PaymentConfirmationResponse> {
+    const response = await api.post('/payments/confirm-payment', { paymentIntentId });
+    return response.data;
+  },
+
+  async requestRefund(orderId: string, reason?: string): Promise<RefundResponse> {
+    const request: RefundRequest = { orderId, reason };
+    const response = await api.post('/payments/refund', request);
     return response.data;
   },
 };
