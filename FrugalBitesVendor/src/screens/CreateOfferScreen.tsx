@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
 import { offerService } from '../services/api';
+import { CloseButton } from '../components';
 
 const CATEGORIES = [
   { id: 'PREPARED_MEALS', label: 'Meals', icon: 'restaurant' },
@@ -122,9 +123,7 @@ const CreateOfferScreen: React.FC = () => {
       >
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="close" size={24} color="#1f2937" />
-          </TouchableOpacity>
+          <CloseButton onPress={() => navigation.goBack()} color="#1f2937" />
           <Text style={styles.headerTitle}>Create Offer</Text>
           <View style={{ width: 40 }} />
         </View>

@@ -758,6 +758,14 @@ namespace FrugalBites.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("PickupConfirmedAt");
 
+                    b.Property<DateTime?>("PickupEndTime")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("PickupEndTime");
+
+                    b.Property<DateTime?>("PickupStartTime")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("PickupStartTime");
+
                     b.Property<DateTime?>("PickupTime")
                         .HasColumnType("TEXT")
                         .HasColumnName("PickupTime");

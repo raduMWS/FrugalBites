@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useWishlist } from '../context/WishlistContext';
+import { useCart } from '../context/CartContext';
 import { RootStackParamList } from '../App';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -12,12 +13,43 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 const WishlistScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const { wishlist, removeFromWishlist } = useWishlist();
+  const { addToCart } = useCart();
+
+  const handleAddAllToCart = () => {
+    wishlist.forEach(item => {
+      const offer = {
+        offerId: item.offerId,
+        merchantId: '00000000-0000-0000-0000-000000000000',
+        foodName: item.foodName,
+        description: item.foodName,
+        category: 'OTHER' as any,
+        originalPrice: item.originalPrice,
+        discountedPrice: item.discountedPrice,
+        discountPercentage: 0,
+        quantity: 1,
+        quantityUnit: 'UNIT' as any,
+        imageUrl: item.imageUrl,
+        pickupStartTime: new Date().toISOString(),
+        pickupEndTime: new Date().toISOString(),
+        dietary: 'NONE' as any,
+        isAvailable: true,
+        createdAt: new Date().toISOString(),
+        merchantName: item.merchantName,
+      } as any;
+      addToCart(offer);
+    });
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Saved for later</Text>
-        <Text style={styles.subtitle}>{wishlist.length} items</Text>
+      <View style={styles.headerRow}>
+        <View>
+          <Text style={styles.title}>Saved for later</Text>
+          <Text style={styles.subtitle}>{wishlist.length} items</Text>
+        </View>
+        <TouchableOpacity style={styles.addAllButton} onPress={handleAddAllToCart}>
+          <Text style={styles.addAllText}>Add all to cart</Text>
+        </TouchableOpacity>
       </View>
 
       {wishlist.length === 0 ? (
@@ -53,6 +85,30 @@ const WishlistScreen: React.FC = () => {
               >
                 <Ionicons name="heart" size={24} color="#16a34a" />
               </TouchableOpacity>
+              <TouchableOpacity style={styles.plusButton} onPress={() => {
+                const offer = {
+                  offerId: item.offerId,
+                  merchantId: '00000000-0000-0000-0000-000000000000',
+                  foodName: item.foodName,
+                  description: item.foodName,
+                  category: 'OTHER' as any,
+                  originalPrice: item.originalPrice,
+                  discountedPrice: item.discountedPrice,
+                  discountPercentage: 0,
+                  quantity: 1,
+                  quantityUnit: 'UNIT' as any,
+                  imageUrl: item.imageUrl,
+                  pickupStartTime: new Date().toISOString(),
+                  pickupEndTime: new Date().toISOString(),
+                  dietary: 'NONE' as any,
+                  isAvailable: true,
+                  createdAt: new Date().toISOString(),
+                  merchantName: item.merchantName,
+                } as any;
+                addToCart(offer);
+              }}>
+                <Ionicons name="add-circle-outline" size={28} color="#16a34a" />
+              </TouchableOpacity>
             </TouchableOpacity>
           )}
           keyExtractor={(item) => item.offerId}
@@ -83,6 +139,30 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
     color: '#6b7280',
+  },
+  headerRow: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  addAllButton: {
+    backgroundColor: '#16a34a',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  addAllText: {
+    color: 'white',
+    fontWeight: '600',
+  },
+  plusButton: {
+    padding: 6,
+    alignSelf: 'flex-start',
+    marginLeft: 8,
   },
   emptyContainer: {
     flex: 1,

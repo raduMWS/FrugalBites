@@ -1,0 +1,152 @@
+{
+  "common": {
+    "loading": "Se încarcă...",
+    "error": "Ceva nu a funcționat",
+    "retry": "Încearcă din nou",
+    "cancel": "Anulează",
+    "confirm": "Confirmă",
+    "save": "Salvează",
+    "delete": "Șterge",
+    "edit": "Editează",
+    "back": "Înapoi",
+    "next": "Următorul",
+    "done": "Gata",
+    "search": "Caută",
+    "noResults": "Nu s-au găsit rezultate",
+    "offline": "Ești offline",
+    "offlineMessage": "Te rugăm să verifici conexiunea la internet"
+  },
+  "auth": {
+    "login": "Conectare",
+    "signup": "Înregistrare",
+    "logout": "Deconectare",
+    "email": "Email",
+    "password": "Parolă",
+    "confirmPassword": "Confirmă parola",
+    "firstName": "Prenume",
+    "lastName": "Nume",
+    "forgotPassword": "Ai uitat parola?",
+    "resetPassword": "Resetează parola",
+    "newPassword": "Parolă nouă",
+    "verificationCode": "Cod de verificare",
+    "verifyEmail": "Verifică email-ul",
+    "resendCode": "Retrimite codul",
+    "loginWithApple": "Continuă cu Apple",
+    "loginWithGoogle": "Continuă cu Google",
+    "orContinueWith": "sau continuă cu",
+    "alreadyHaveAccount": "Ai deja un cont?",
+    "dontHaveAccount": "Nu ai cont?",
+    "passwordResetSent": "Codul de resetare a fost trimis pe email",
+    "emailVerified": "Email verificat cu succes!",
+    "invalidCredentials": "Email sau parolă invalidă"
+  },
+  "home": {
+    "title": "FrugalBites",
+    "greeting": "Bună, {{name}}!",
+    "nearbyOffers": "Oferte în apropiere",
+    "premiumDeals": "Oferte Premium",
+    "foodBundles": "Pachete de mâncare",
+    "seeAll": "Vezi toate",
+    "noOffersNearby": "Nicio ofertă în apropiere",
+    "expandSearch": "Încearcă să extinzi raza de căutare"
+  },
+  "offers": {
+    "available": "{{count}} disponibile",
+    "expiresIn": "Expiră în {{time}}",
+    "pickup": "Ridicare",
+    "pickupWindow": "Ridicare: {{start}} - {{end}}",
+    "discount": "{{percent}}% REDUCERE",
+    "originalPrice": "Preț inițial: {{price}}",
+    "addToCart": "Adaugă în coș",
+    "outOfStock": "Stoc epuizat",
+    "categories": {
+      "all": "Toate",
+      "bakery": "Brutărie",
+      "restaurant": "Restaurant",
+      "preparedMeals": "Mese preparate",
+      "groceries": "Alimente",
+      "beverages": "Băuturi",
+      "desserts": "Deserturi",
+      "other": "Altele"
+    }
+  },
+  "cart": {
+    "title": "Coșul tău",
+    "empty": "Coșul tău este gol",
+    "emptyMessage": "Adaugă niște oferte delicioase pentru a începe!",
+    "subtotal": "Subtotal",
+    "savings": "Economisești",
+    "total": "Total",
+    "checkout": "Finalizează comanda",
+    "removeItem": "Ștergi produsul?"
+  },
+  "orders": {
+    "title": "Comenzile mele",
+    "active": "Active",
+    "past": "Anterioare",
+    "noOrders": "Nicio comandă încă",
+    "noOrdersMessage": "Începe să economisești mâncare și bani!",
+    "orderNumber": "Comanda #{{number}}",
+    "status": {
+      "pending": "În așteptare",
+      "confirmed": "Confirmată",
+      "preparing": "În pregătire",
+      "ready": "Gata de ridicare",
+      "pickedUp": "Ridicată",
+      "cancelled": "Anulată",
+      "expired": "Expirată"
+    },
+    "showQR": "Arată codul QR",
+    "qrInstructions": "Arată acest cod comerciantului pentru a ridica comanda",
+    "cancelOrder": "Anulează comanda",
+    "cancelConfirm": "Ești sigur că vrei să anulezi această comandă?"
+  },
+  "payment": {
+    "title": "Plată",
+    "payNow": "Plătește acum",
+    "processing": "Se procesează plata...",
+    "success": "Plată efectuată cu succes!",
+    "failed": "Plata a eșuat",
+    "tryAgain": "Te rugăm să încerci din nou"
+  },
+  "profile": {
+    "title": "Profil",
+    "editProfile": "Editează profilul",
+    "settings": "Setări",
+    "language": "Limbă",
+    "notifications": "Notificări",
+    "darkMode": "Mod întunecat",
+    "helpSupport": "Ajutor și suport",
+    "privacyPolicy": "Politica de confidențialitate",
+    "termsOfService": "Termeni și condiții",
+    "rateApp": "Evaluează aplicația",
+    "version": "Versiunea {{version}}"
+  },
+  "favorites": {
+    "title": "Favorite",
+    "empty": "Niciun favorit încă",
+    "emptyMessage": "Salvează comercianții tăi preferați aici"
+  },
+  "merchant": {
+    "about": "Despre",
+    "menu": "Meniu",
+    "reviews": "Recenzii",
+    "hours": "Program",
+    "address": "Adresă",
+    "phone": "Telefon",
+    "verified": "Comerciant verificat",
+    "rating": "{{rating}} ({{count}} recenzii)"
+  },
+  "notifications": {
+    "orderConfirmed": "Comanda ta a fost confirmată!",
+    "orderReady": "Comanda ta este gata de ridicare!",
+    "newOffer": "Ofertă nouă în apropiere: {{offer}}"
+  },
+  "errors": {
+    "networkError": "Eroare de rețea. Verifică conexiunea.",
+    "serverError": "Eroare de server. Încearcă mai târziu.",
+    "unauthorized": "Sesiune expirată. Conectează-te din nou.",
+    "notFound": "Nu a fost găsit",
+    "validationError": "Verifică datele introduse"
+  }
+}

@@ -1,0 +1,152 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Try Again",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "next": "Next",
+    "done": "Done",
+    "search": "Search",
+    "noResults": "No results found",
+    "offline": "You're offline",
+    "offlineMessage": "Please check your internet connection"
+  },
+  "auth": {
+    "login": "Log In",
+    "signup": "Sign Up",
+    "logout": "Log Out",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "forgotPassword": "Forgot Password?",
+    "resetPassword": "Reset Password",
+    "newPassword": "New Password",
+    "verificationCode": "Verification Code",
+    "verifyEmail": "Verify Email",
+    "resendCode": "Resend Code",
+    "loginWithApple": "Continue with Apple",
+    "loginWithGoogle": "Continue with Google",
+    "orContinueWith": "or continue with",
+    "alreadyHaveAccount": "Already have an account?",
+    "dontHaveAccount": "Don't have an account?",
+    "passwordResetSent": "Password reset code sent to your email",
+    "emailVerified": "Email verified successfully!",
+    "invalidCredentials": "Invalid email or password"
+  },
+  "home": {
+    "title": "FrugalBites",
+    "greeting": "Hello, {{name}}!",
+    "nearbyOffers": "Nearby Offers",
+    "premiumDeals": "Premium Deals",
+    "foodBundles": "Food Bundles",
+    "seeAll": "See All",
+    "noOffersNearby": "No offers nearby",
+    "expandSearch": "Try expanding your search radius"
+  },
+  "offers": {
+    "available": "{{count}} available",
+    "expiresIn": "Expires in {{time}}",
+    "pickup": "Pickup",
+    "pickupWindow": "Pickup: {{start}} - {{end}}",
+    "discount": "{{percent}}% OFF",
+    "originalPrice": "Original: {{price}}",
+    "addToCart": "Add to Cart",
+    "outOfStock": "Out of Stock",
+    "categories": {
+      "all": "All",
+      "bakery": "Bakery",
+      "restaurant": "Restaurant",
+      "preparedMeals": "Prepared Meals",
+      "groceries": "Groceries",
+      "beverages": "Beverages",
+      "desserts": "Desserts",
+      "other": "Other"
+    }
+  },
+  "cart": {
+    "title": "Your Cart",
+    "empty": "Your cart is empty",
+    "emptyMessage": "Add some delicious deals to get started!",
+    "subtotal": "Subtotal",
+    "savings": "You're saving",
+    "total": "Total",
+    "checkout": "Checkout",
+    "removeItem": "Remove item?"
+  },
+  "orders": {
+    "title": "My Orders",
+    "active": "Active",
+    "past": "Past",
+    "noOrders": "No orders yet",
+    "noOrdersMessage": "Start saving food and money!",
+    "orderNumber": "Order #{{number}}",
+    "status": {
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "preparing": "Preparing",
+      "ready": "Ready for Pickup",
+      "pickedUp": "Picked Up",
+      "cancelled": "Cancelled",
+      "expired": "Expired"
+    },
+    "showQR": "Show QR Code",
+    "qrInstructions": "Show this code to the merchant to pick up your order",
+    "cancelOrder": "Cancel Order",
+    "cancelConfirm": "Are you sure you want to cancel this order?"
+  },
+  "payment": {
+    "title": "Payment",
+    "payNow": "Pay Now",
+    "processing": "Processing payment...",
+    "success": "Payment successful!",
+    "failed": "Payment failed",
+    "tryAgain": "Please try again"
+  },
+  "profile": {
+    "title": "Profile",
+    "editProfile": "Edit Profile",
+    "settings": "Settings",
+    "language": "Language",
+    "notifications": "Notifications",
+    "darkMode": "Dark Mode",
+    "helpSupport": "Help & Support",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "rateApp": "Rate the App",
+    "version": "Version {{version}}"
+  },
+  "favorites": {
+    "title": "Favorites",
+    "empty": "No favorites yet",
+    "emptyMessage": "Save your favorite merchants here"
+  },
+  "merchant": {
+    "about": "About",
+    "menu": "Menu",
+    "reviews": "Reviews",
+    "hours": "Hours",
+    "address": "Address",
+    "phone": "Phone",
+    "verified": "Verified Merchant",
+    "rating": "{{rating}} ({{count}} reviews)"
+  },
+  "notifications": {
+    "orderConfirmed": "Your order has been confirmed!",
+    "orderReady": "Your order is ready for pickup!",
+    "newOffer": "New deal nearby: {{offer}}"
+  },
+  "errors": {
+    "networkError": "Network error. Please check your connection.",
+    "serverError": "Server error. Please try again later.",
+    "unauthorized": "Session expired. Please log in again.",
+    "notFound": "Not found",
+    "validationError": "Please check your input"
+  }
+}

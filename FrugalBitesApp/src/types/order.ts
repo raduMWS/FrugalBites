@@ -3,6 +3,7 @@ export interface OrderDTO {
   offerId: string;
   merchantId: string;
   foodName: string;
+  offerName?: string; // Alias for foodName
   merchantName: string;
   merchantAddress: string;
   imageUrl?: string;
@@ -12,9 +13,12 @@ export interface OrderDTO {
   orderStatus: OrderStatus;
   paymentStatus: PaymentStatus;
   pickupTime?: string;
+  pickupStartTime?: string;
+  pickupEndTime?: string;
   pickupConfirmedAt?: string;
   customerNotes?: string;
   createdAt: string;
+  qrCode?: string;
 }
 
 export type OrderStatus = 

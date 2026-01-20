@@ -15,6 +15,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { ToastProvider } from './components/Toast';
+import { NetworkProvider } from './context/NetworkContext';
+import { OfflineBanner, ErrorBoundary } from './components';
+import { initI18n } from './i18n';
+import { initSentry, setUserContext } from './services/crashReporting';
+import { registerForPushNotifications } from './services/notifications';
+import { linkingConfiguration } from './services/deepLinking';
 import { colors } from './theme';
 import AuthScreen from './screens/AuthScreen';
 import OnboardingScreen from './screens/OnboardingScreen';
@@ -26,8 +34,17 @@ import WishlistScreen from './screens/WishlistScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import RestaurantDetailScreen from './screens/RestaurantDetailScreen';
 import OfferDetailScreen from './screens/OfferDetailScreen';
+import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
+import EmailVerificationScreen from './screens/EmailVerificationScreen';
+import OrderDetailsScreen from './screens/OrderDetailsScreen';
 import FloatingCartButton from './components/FloatingCartButton';
 import { MerchantDTO } from './types/merchant';
+
+// Initialize localization
+initI18n();
+
+// Initialize crash reporting
+initSentry();
 
 // Conditionally import Stripe (only works in development builds, not Expo Go)
 let StripeProvider: React.ComponentType<{ publishableKey: string; children: React.ReactNode }> | null = null;
@@ -48,6 +65,9 @@ export type RootStackParamList = {
   OfferDetail: { offerId: string };
   Cart: undefined;
   Auth: undefined;
+  ForgotPassword: undefined;
+  EmailVerification: { email: string };
+  OrderDetails: { orderId: string };
 };
 
 export type TabParamList = {
@@ -132,12 +152,29 @@ const TabNavigator = () => {
 };
 
 const RootNavigator = () => {
-  const { isSignedIn, isLoading } = useAuth();
+  const { isSignedIn, isLoading, user } = useAuth();
+  const { isDark } = useTheme();
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
 
   useEffect(() => {
     checkOnboarding();
   }, []);
+
+  // Set up push notifications when user signs in
+  useEffect(() => {
+    if (isSignedIn && user) {
+      // Set user context for crash reporting
+      setUserContext(user.userId, user.email);
+      
+      // Register for push notifications
+      registerForPushNotifications().then((token) => {
+        if (token) {
+          console.log('Push token registered:', token.substring(0, 20) + '...');
+          // TODO: Send token to backend
+        }
+      });
+    }
+  }, [isSignedIn, user]);
 
   const checkOnboarding = async () => {
     try {
@@ -166,8 +203,9 @@ const RootNavigator = () => {
   }
 
   return (
-    <NavigationContainer>
-      <StatusBar barStyle="dark-content" />
+    <NavigationContainer linking={linkingConfiguration}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
+      <OfflineBanner />
       {isSignedIn ? (
         <View style={{ flex: 1 }}>
           <Stack.Navigator>
@@ -200,6 +238,14 @@ const RootNavigator = () => {
                 headerBackTitle: 'Close',
               }}
             />
+            <Stack.Screen
+              name="OrderDetails"
+              component={OrderDetailsScreen}
+              options={{
+                title: 'Order Details',
+                headerBackTitle: 'Back',
+              }}
+            />
           </Stack.Navigator>
           <FloatingCartButton />
         </View>
@@ -209,6 +255,22 @@ const RootNavigator = () => {
             name="Auth"
             component={AuthScreen}
             options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="ForgotPassword"
+            component={ForgotPasswordScreen}
+            options={{
+              title: 'Reset Password',
+              headerBackTitle: 'Back',
+            }}
+          />
+          <Stack.Screen
+            name="EmailVerification"
+            component={EmailVerificationScreen}
+            options={{
+              title: 'Verify Email',
+              headerBackTitle: 'Back',
+            }}
           />
         </Stack.Navigator>
       )}
@@ -221,15 +283,24 @@ function App() {
   const stripePublishableKey = 'pk_test_placeholder'; // Replace with your actual test key
 
   const AppContent = (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <CartProvider>
-          <WishlistProvider>
-            <RootNavigator />
-          </WishlistProvider>
-        </CartProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <NetworkProvider>
+            <AuthProvider>
+              <CartProvider>
+                <WishlistProvider>
+                  <ToastProvider>
+                    <RootNavigator />
+                  </ToastProvider>
+                </WishlistProvider>
+              </CartProvider>
+            </AuthProvider>
+          </NetworkProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+
+    </ErrorBoundary>
   );
 
   // Wrap with StripeProvider only if available (development build)

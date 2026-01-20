@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, Alert, Image, ScrollView } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { StackScreenProps } from '@react-navigation/stack';
 import OfferCard from '../components/OfferCard';
 import { offerService } from '../services/api';
 import { OfferDTO } from '../types/offer';
@@ -9,10 +9,10 @@ import { MerchantDTO } from '../types/merchant';
 
 type RootStackParamList = {
   Home: undefined;
-  RestaurantDetail: { merchantId: string; merchant: MerchantDTO };
+  RestaurantDetail: { merchantId: string; merchant?: MerchantDTO };
 };
 
-type Props = NativeStackScreenProps<RootStackParamList, 'RestaurantDetail'>;
+type Props = StackScreenProps<RootStackParamList, 'RestaurantDetail'>;
 
 const RestaurantDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const { merchantId, merchant } = route.params;
@@ -42,6 +42,17 @@ const RestaurantDetailScreen: React.FC<Props> = ({ route, navigation }) => {
       }}
     />
   );
+
+  // Show loading or placeholder if merchant data isn't available
+  if (!merchant) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.infoContainer}>
+          <Text style={styles.name}>Loading...</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container}>

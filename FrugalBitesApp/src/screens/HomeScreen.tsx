@@ -149,22 +149,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             renderItem={({ item }) => (
               <PremiumDealCard
                 offer={item}
-                onPress={() => {
-                  if (item.merchantId) {
-                    navigation.navigate('RestaurantDetail', {
-                      merchantId: item.merchantId,
-                      merchant: {
-                        merchantId: item.merchantId,
-                      businessName: item.merchantName,
-                      averageRating: item.merchantRating || 0,
-                      totalReviews: 0,
-                      logoUrl: item.merchantLogoUrl,
-                      distance: item.distanceKm,
-
-                      } as MerchantDTO,
-                    });
-                  }
-                }}
+                onPress={() => navigation.navigate('OfferDetail', { offerId: item.offerId })}
               />
             )}
             keyExtractor={(item) => item.offerId}
@@ -191,21 +176,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             renderItem={({ item }) => (
               <FoodBundleCard
                 offer={item}
-                onPress={() => {
-                  if (item.merchantId) {
-                    navigation.navigate('RestaurantDetail', {
-                      merchantId: item.merchantId,
-                      merchant: {
-                        merchantId: item.merchantId,
-                        businessName: item.merchantName,
-                        averageRating: item.merchantRating || 0,
-                        totalReviews: 0,
-                        logoUrl: item.merchantLogoUrl,
-                        distance: item.distanceKm,
-                      } as MerchantDTO,
-                    });
-                  }
-                }}
+                onPress={() => navigation.navigate('OfferDetail', { offerId: item.offerId })}
               />
             )}
             keyExtractor={(item) => item.offerId}

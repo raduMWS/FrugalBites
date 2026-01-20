@@ -51,8 +51,15 @@ public class Order
     [Column("StripePaymentIntentId")]
     public string? StripePaymentIntentId { get; set; }
 
+
     [Column("PickupTime")]
     public DateTime? PickupTime { get; set; }
+
+    [Column("PickupStartTime")]
+    public DateTime? PickupStartTime { get; set; }
+
+    [Column("PickupEndTime")]
+    public DateTime? PickupEndTime { get; set; }
 
     [Column("PickupConfirmedAt")]
     public DateTime? PickupConfirmedAt { get; set; }

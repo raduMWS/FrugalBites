@@ -53,7 +53,7 @@ getStoredToken().then(token => {
 const getBaseURL = () => {
   if (__DEV__) {
     // Your computer's local network IP - update this if your IP changes
-    const LOCAL_IP = '192.168.1.53';
+    const LOCAL_IP = '192.168.1.67';
     
     // For physical devices, always use the network IP
     // For simulators/emulators, use localhost or special address
@@ -140,6 +140,22 @@ export const authService = {
     // Clear the stored token
     await setStoredToken(null);
   },
+
+  async forgotPassword(email: string): Promise<void> {
+    await api.post('/auth/forgot-password', { email });
+  },
+
+  async resetPassword(email: string, code: string, newPassword: string): Promise<void> {
+    await api.post('/auth/reset-password', { email, code, newPassword });
+  },
+
+  async verifyEmail(email: string, code: string): Promise<void> {
+    await api.post('/auth/verify-email', { email, code });
+  },
+
+  async resendVerificationCode(email: string): Promise<void> {
+    await api.post('/auth/resend-verification', { email });
+  },
 };
 
 export const offerService = {
@@ -194,6 +210,9 @@ export const orderService = {
     return response.data;
   },
 };
+
+// Alias for ordersService
+export const ordersService = orderService;
 
 // Payments Service
 export const paymentService = {

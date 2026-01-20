@@ -10,6 +10,8 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { offerService, merchantService } from '../services/api';
 import { MerchantDTO } from '../types/merchant';
 import { RootStackParamList } from '../App';
+import { CloseButton } from '../components';
+import { useWishlist } from '../context/WishlistContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -21,6 +23,7 @@ const DEFAULT_LOCATION = {
 
 const MapScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedMerchant, setSelectedMerchant] = useState<MerchantDTO | null>(null);
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -182,12 +185,11 @@ const MapScreen: React.FC = () => {
       {/* Bottom Sheet */}
       {selectedMerchant && (
         <View style={styles.bottomSheet}>
-          <TouchableOpacity 
-            style={styles.closeButton}
+          <CloseButton 
             onPress={() => setSelectedMerchant(null)}
-          >
-            <Ionicons name="close" size={24} color="#999" />
-          </TouchableOpacity>
+            style={styles.closeButton}
+            color="#999"
+          />
 
           <View style={styles.sheetHeader}>
             {selectedMerchant.logoUrl ? (
@@ -238,16 +240,17 @@ const MapScreen: React.FC = () => {
             renderItem={({ item: offer }) => (
               <TouchableOpacity
                 style={styles.offerItem}
-                onPress={() => {
-                  navigation.navigate('RestaurantDetail', {
-                    merchantId: selectedMerchant.merchantId,
-                    merchant: selectedMerchant,
-                  });
-                }}
+                onPress={() => navigation.navigate('OfferDetail', { offerId: offer.offerId })}
               >
                 {offer.imageUrl && (
                   <Image source={{ uri: offer.imageUrl }} style={styles.offerImage} />
                 )}
+                <TouchableOpacity
+                  style={styles.offerWishlistButton}
+                  onPress={(e) => { e.stopPropagation(); if (isInWishlist(offer.offerId)) { removeFromWishlist(offer.offerId); } else { addToWishlist({ offerId: offer.offerId, foodName: offer.foodName, merchantName: selectedMerchant.businessName, imageUrl: offer.imageUrl || '', discountedPrice: offer.discountedPrice, originalPrice: offer.originalPrice }); } }}
+                >
+                  <Ionicons name={isInWishlist(offer.offerId) ? 'heart' : 'heart-outline'} size={20} color={isInWishlist(offer.offerId) ? '#ef4444' : '#fff'} />
+                </TouchableOpacity>
                 <View style={styles.offerInfo}>
                   <Text style={styles.offerName}>{offer.foodName}</Text>
                   <View style={styles.offerPricing}>
@@ -255,7 +258,9 @@ const MapScreen: React.FC = () => {
                     <Text style={styles.offerOriginalPrice}>RON {offer.originalPrice.toFixed(0)}</Text>
                   </View>
                   <Text style={styles.offerTime}>
-                    Today {new Date(offer.pickupStartTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })} - {new Date(offer.pickupEndTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                    Pickup: {new Date(offer.pickupStartTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {' - '}
+                    {new Date(offer.pickupEndTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </Text>
                 </View>
                 <TouchableOpacity style={styles.addButton}>
@@ -284,9 +289,7 @@ const MapScreen: React.FC = () => {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Filters</Text>
-              <TouchableOpacity onPress={() => setShowFilterModal(false)}>
-                <Ionicons name="close" size={24} color="#333" />
-              </TouchableOpacity>
+              <CloseButton onPress={() => setShowFilterModal(false)} color="#333" />
             </View>
 
             {/* Radius Slider */}
@@ -680,6 +683,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
+  },
+  offerWishlistButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    padding: 6,
+    borderRadius: 18,
+    backgroundColor: 'rgba(0,0,0,0.25)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   noOffers: {
     paddingVertical: 32,

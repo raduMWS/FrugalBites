@@ -6,6 +6,9 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { OfferDTO } from '../types/offer';
 import { RootStackParamList } from '../App';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
+import { useToast } from './Toast';
+import OfferQuickView from './OfferQuickView';
 import { colors } from '../theme';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -25,86 +28,115 @@ const OfferCard: React.FC<OfferCardProps> = ({ offer, onPress }) => {
   const formatDistance = (distance?: number) => distance ? `${distance.toFixed(1)} km` : '';
 
   const imageUri = (!imageError && offer.imageUrl) ? offer.imageUrl : FALLBACK_IMAGE;
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { showToast } = useToast();
+  const [showQuick, setShowQuick] = useState(false);
 
   const handlePress = () => {
     if (onPress) {
       onPress();
     } else {
-      navigation.navigate('OfferDetail', { offerId: offer.offerId });
+      // Open quick view modal by default
+      setShowQuick(true);
     }
   };
 
   const handleAddToCart = (e: any) => {
     e.stopPropagation();
     addToCart(offer);
+    showToast('Added to cart');
+  };
+
+  const closeQuick = () => setShowQuick(false);
+
+  const handleWishlistToggle = (e: any) => {
+    e.stopPropagation();
+    if (isInWishlist(offer.offerId)) {
+      removeFromWishlist(offer.offerId);
+      showToast('Removed from wishlist');
+    } else {
+      addToWishlist({
+        offerId: offer.offerId,
+        foodName: offer.foodName,
+        merchantName: offer.merchantName,
+        imageUrl: imageUri,
+        discountedPrice: offer.discountedPrice,
+        originalPrice: offer.originalPrice,
+      });
+      showToast('Saved for later');
+    }
   };
 
   return (
-    <TouchableOpacity style={styles.card} onPress={handlePress} activeOpacity={0.7}>
-      {/* Image */}
-      <View style={styles.imageContainer}>
-        <Image 
-          source={{ uri: imageUri }} 
-          style={styles.image} 
-          onError={() => setImageError(true)}
-        />
+    <>
+      <TouchableOpacity style={styles.card} onPress={handlePress} activeOpacity={0.7}>
+        {/* Image */}
+        <View style={styles.imageContainer}>
+          <Image 
+            source={{ uri: imageUri }} 
+            style={styles.image} 
+            onError={() => setImageError(true)}
+          />
 
-        {/* Discount Badge */}
-        <View style={styles.discountBadge}>
-          <Text style={styles.discountText}>-{offer.discountPercentage}%</Text>
+          {/* Discount Badge */}
+          <View style={styles.discountBadge}>
+            <Text style={styles.discountText}>-{offer.discountPercentage}%</Text>
+          </View>
+
+          {/* Add to Cart Button */}
+          <TouchableOpacity 
+            style={styles.addToCartButton}
+            onPress={handleAddToCart}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="add" size={20} color="white" />
+          </TouchableOpacity>
         </View>
 
-        {/* Add to Cart Button */}
-        <TouchableOpacity 
-          style={styles.addToCartButton}
-          onPress={handleAddToCart}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="add" size={20} color="white" />
-        </TouchableOpacity>
-      </View>
+        {/* Content */}
+        <View style={styles.content}>
+          {/* Merchant Info */}
+          <View style={styles.merchantInfo}>
+            {offer.merchantLogoUrl && (
+              <Image source={{ uri: offer.merchantLogoUrl }} style={styles.merchantLogo} />
+            )}
+            <Text style={styles.merchantName}>{offer.merchantName}</Text>
+            {offer.merchantRating != null && offer.merchantRating > 0 && (
+              <Text style={styles.rating}>⭐ {offer.merchantRating.toFixed(1)}</Text>
+            )}
+          </View>
 
-      {/* Content */}
-      <View style={styles.content}>
-        {/* Merchant Info */}
-        <View style={styles.merchantInfo}>
-          {offer.merchantLogoUrl && (
-            <Image source={{ uri: offer.merchantLogoUrl }} style={styles.merchantLogo} />
-          )}
-          <Text style={styles.merchantName}>{offer.merchantName}</Text>
-          {offer.merchantRating != null && offer.merchantRating > 0 && (
-            <Text style={styles.rating}>⭐ {offer.merchantRating.toFixed(1)}</Text>
-          )}
-        </View>
+          {/* Food Name */}
+          <Text style={styles.foodName} numberOfLines={2}>{offer.foodName}</Text>
 
-        {/* Food Name */}
-        <Text style={styles.foodName} numberOfLines={2}>{offer.foodName}</Text>
+          {/* Price */}
+          <View style={styles.priceContainer}>
+            <Text style={styles.discountedPrice}>{formatPrice(offer.discountedPrice)}</Text>
+            <Text style={styles.originalPrice}>{formatPrice(offer.originalPrice)}</Text>
+          </View>
 
-        {/* Price */}
-        <View style={styles.priceContainer}>
-          <Text style={styles.discountedPrice}>{formatPrice(offer.discountedPrice)}</Text>
-          <Text style={styles.originalPrice}>{formatPrice(offer.originalPrice)}</Text>
-        </View>
-
-        {/* Quantity */}
-        <Text style={styles.quantity}>
-          {offer.quantity} {String(offer.quantityUnit || 'unit').toLowerCase()}
-        </Text>
-
-        {/* Pickup Time & Distance */}
-        <View style={styles.footer}>
-          <Text style={styles.pickupTime}>
-            Pickup: {new Date(offer.pickupEndTime).toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit'
-            })}
+          {/* Quantity */}
+          <Text style={styles.quantity}>
+            {offer.quantity} {String(offer.quantityUnit || 'unit').toLowerCase()}
           </Text>
-          {offer.distanceKm != null && offer.distanceKm > 0 && (
-            <Text style={styles.distance}>{formatDistance(offer.distanceKm)}</Text>
-          )}
+
+          {/* Pickup Time & Distance */}
+          <View style={styles.footer}>
+            <Text style={styles.pickupTime}>
+              Pickup: {new Date(offer.pickupStartTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              {' - '}
+              {new Date(offer.pickupEndTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </Text>
+            {offer.distanceKm != null && offer.distanceKm > 0 && (
+              <Text style={styles.distance}>{formatDistance(offer.distanceKm)}</Text>
+            )}
+          </View>
         </View>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+
+      {/* Quick View Modal */}
+      <OfferQuickView visible={showQuick} offer={offer} onClose={closeQuick} />
+    </>
   );
 };
 
@@ -218,6 +250,16 @@ const styles = StyleSheet.create({
   distance: {
     fontSize: 12,
     color: colors.text.secondary,
+  },
+  wishlistButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    padding: 6,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   addToCartButton: {
     position: 'absolute',

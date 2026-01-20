@@ -133,6 +133,151 @@ public class OffersController : ControllerBase
         return Ok(offerDTO);
     }
 
+    /// <summary>
+    /// Search offers and merchants by query string
+    /// </summary>
+    [HttpGet("search")]
+    public async Task<ActionResult<SearchResultDTO>> Search(
+        [FromQuery] string q,
+        [FromQuery] double? lat,
+        [FromQuery] double? lng,
+        [FromQuery] int limit = 20)
+    {
+        if (string.IsNullOrWhiteSpace(q) || q.Length < 2)
+        {
+            return BadRequest("Search query must be at least 2 characters");
+        }
+
+        var searchTerm = q.ToLower().Trim();
+
+        // Search offers
+        var offers = await _context.Offers
+            .Include(o => o.Merchant)
+            .Where(o => o.IsAvailable && o.PickupEndTime > DateTime.UtcNow)
+            .Where(o => 
+                o.FoodName.ToLower().Contains(searchTerm) ||
+                o.Description.ToLower().Contains(searchTerm) ||
+                o.Merchant.BusinessName.ToLower().Contains(searchTerm))
+            .Take(limit)
+            .ToListAsync();
+
+        // Search merchants
+        var merchants = await _context.Merchants
+            .Where(m => m.IsActive)
+            .Where(m => 
+                m.BusinessName.ToLower().Contains(searchTerm) ||
+                (m.Description != null && m.Description.ToLower().Contains(searchTerm)) ||
+                (m.AddressLine1 != null && m.AddressLine1.ToLower().Contains(searchTerm)) ||
+                (m.City != null && m.City.ToLower().Contains(searchTerm)))
+            .Take(limit)
+            .ToListAsync();
+
+        var result = new SearchResultDTO
+        {
+            Query = q,
+            Offers = offers.Select(o => new OfferDTO
+            {
+                OfferId = o.OfferId,
+                MerchantId = o.MerchantId,
+                FoodName = o.FoodName,
+                Description = o.Description,
+                Category = o.Category,
+                OriginalPrice = o.OriginalPrice,
+                DiscountedPrice = o.DiscountedPrice,
+                DiscountPercentage = o.DiscountPercentage,
+                Quantity = o.Quantity,
+                QuantityUnit = o.QuantityUnit,
+                ImageUrl = o.ImageUrl,
+                PickupStartTime = o.PickupStartTime,
+                PickupEndTime = o.PickupEndTime,
+                Dietary = o.Dietary,
+                ExpirationDate = o.ExpirationDate,
+                IsAvailable = o.IsAvailable,
+                CreatedAt = o.CreatedAt,
+                MerchantName = o.Merchant.BusinessName,
+                MerchantLogoUrl = o.Merchant.LogoUrl,
+                MerchantRating = o.Merchant.AverageRating,
+                DistanceKm = lat.HasValue && lng.HasValue && o.Merchant.Latitude.HasValue && o.Merchant.Longitude.HasValue
+                    ? CalculateDistance(lat.Value, lng.Value, (double)o.Merchant.Latitude.Value, (double)o.Merchant.Longitude.Value)
+                    : null
+            }).ToList(),
+            Merchants = merchants.Select(m => new MerchantDTO
+            {
+                MerchantId = m.MerchantId,
+                UserId = m.UserId,
+                BusinessName = m.BusinessName,
+                BusinessType = m.BusinessType,
+                Description = m.Description,
+                AddressLine1 = m.AddressLine1,
+                AddressLine2 = m.AddressLine2,
+                City = m.City,
+                PostalCode = m.PostalCode,
+                CountryCode = m.CountryCode,
+                Latitude = m.Latitude,
+                Longitude = m.Longitude,
+                PhoneNumber = m.PhoneNumber,
+                LogoUrl = m.LogoUrl,
+                CoverImageUrl = m.CoverImageUrl,
+                AverageRating = m.AverageRating,
+                TotalReviews = m.TotalReviews,
+                IsActive = m.IsActive
+            }).ToList(),
+            TotalOffers = offers.Count,
+            TotalMerchants = merchants.Count
+        };
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Get search suggestions based on partial query
+    /// </summary>
+    [HttpGet("suggestions")]
+    public async Task<ActionResult<IEnumerable<SearchSuggestionDTO>>> GetSuggestions([FromQuery] string q)
+    {
+        if (string.IsNullOrWhiteSpace(q) || q.Length < 2)
+        {
+            return Ok(Array.Empty<SearchSuggestionDTO>());
+        }
+
+        var searchTerm = q.ToLower().Trim();
+        var suggestions = new List<SearchSuggestionDTO>();
+
+        // Get offer suggestions
+        var offerSuggestions = await _context.Offers
+            .Where(o => o.IsAvailable && o.PickupEndTime > DateTime.UtcNow)
+            .Where(o => o.FoodName.ToLower().Contains(searchTerm))
+            .Select(o => new SearchSuggestionDTO
+            {
+                Id = o.OfferId.ToString(),
+                Text = o.FoodName,
+                Type = "offer",
+                Icon = null
+            })
+            .Distinct()
+            .Take(5)
+            .ToListAsync();
+
+        // Get merchant suggestions
+        var merchantSuggestions = await _context.Merchants
+            .Where(m => m.IsActive)
+            .Where(m => m.BusinessName.ToLower().Contains(searchTerm))
+            .Select(m => new SearchSuggestionDTO
+            {
+                Id = m.MerchantId.ToString(),
+                Text = m.BusinessName,
+                Type = "merchant",
+                Icon = m.LogoUrl
+            })
+            .Take(5)
+            .ToListAsync();
+
+        suggestions.AddRange(offerSuggestions);
+        suggestions.AddRange(merchantSuggestions);
+
+        return Ok(suggestions.Take(10));
+    }
+
     private static double CalculateDistance(double lat1, double lon1, double lat2, double lon2)
     {
         const double R = 6371; // Earth's radius in kilometers
@@ -153,4 +298,22 @@ public class OffersController : ControllerBase
     {
         return degrees * Math.PI / 180;
     }
+}
+
+// DTOs for search
+public class SearchResultDTO
+{
+    public string Query { get; set; } = string.Empty;
+    public List<OfferDTO> Offers { get; set; } = new();
+    public List<MerchantDTO> Merchants { get; set; } = new();
+    public int TotalOffers { get; set; }
+    public int TotalMerchants { get; set; }
+}
+
+public class SearchSuggestionDTO
+{
+    public string Id { get; set; } = string.Empty;
+    public string Text { get; set; } = string.Empty;
+    public string Type { get; set; } = string.Empty; // "offer", "merchant", "category"
+    public string? Icon { get; set; }
 }

@@ -402,10 +402,7 @@ public class UpdateOfferRequest
     public string? ImageUrl { get; set; }
 }
 
-public class UpdateOrderStatusRequest
-{
-    public string Status { get; set; } = string.Empty;
-}
+// UpdateOrderStatusRequest is defined in OrdersController.cs
 
 public class VendorAnalyticsDTO
 {

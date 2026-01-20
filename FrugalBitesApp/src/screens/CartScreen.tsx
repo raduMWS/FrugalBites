@@ -7,6 +7,7 @@ import { useCart } from '../context/CartContext';
 import { orderService } from '../services/api';
 import { logger } from '../services/logger';
 import PaymentSheet from '../components/PaymentSheet';
+import { CloseButton } from '../components';
 
 const cartLogger = logger.withContext('Cart');
 
@@ -125,9 +126,7 @@ const CartScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-          <Ionicons name="close" size={28} color="#333" />
-        </TouchableOpacity>
+        <CloseButton size={28} color="#333" />
         <Text style={styles.title}>Your Cart</Text>
         <View style={{ width: 40 }} />
       </View>

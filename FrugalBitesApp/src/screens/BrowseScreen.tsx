@@ -80,8 +80,8 @@ const BrowseScreen: React.FC = () => {
     let matchesCategory = selectedCategory === 'all';
     
     if (selectedCategory === 'vegan') {
-      // Check dietary field for vegan (1 = VEGAN based on API response)
-      matchesCategory = offer.dietary === 1 || offer.dietary === DietaryType.VEGAN;
+      // Check dietary field for vegan (handle both string enum and number from API)
+      matchesCategory = offer.dietary === DietaryType.VEGAN || offer.dietary === ('VEGAN' as DietaryType);
     } else if (selectedCat?.apiValue) {
       // Category is returned as a number from the API
       matchesCategory = selectedCat.apiValue.includes(offer.category as unknown as number);
@@ -178,22 +178,7 @@ const BrowseScreen: React.FC = () => {
           renderItem={({ item }) => (
             <OfferCard
               offer={item}
-              onPress={() => {
-                if (item.merchantId) {
-                  navigation.navigate('RestaurantDetail', {
-                    merchantId: item.merchantId,
-                    merchant: {
-                      merchantId: item.merchantId,
-                    businessName: item.merchantName,
-                    averageRating: item.merchantRating || 0,
-                    totalReviews: 0,
-                    logoUrl: item.merchantLogoUrl,
-                    distance: item.distanceKm,
-
-                    } as MerchantDTO,
-                  });
-                }
-              }}
+              onPress={() => navigation.navigate('OfferDetail', { offerId: item.offerId })}
             />
           )}
           keyExtractor={(item) => item.offerId}

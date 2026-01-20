@@ -16,6 +16,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { orderService } from '../services/api';
 import { OrderDTO, getOrderStatusLabel, getOrderStatusColor } from '../types/order';
 import { logger } from '../services/logger';
+import { BackButton } from '../components';
 
 const ordersLogger = logger.withContext('OrdersScreen');
 
@@ -137,7 +138,15 @@ const OrdersScreen: React.FC<OrdersScreenProps> = ({ onClose }) => {
           )}
         </View>
 
-        {item.pickupTime && item.orderStatus !== 'PICKED_UP' && item.orderStatus !== 'CANCELLED' && (
+        {(item.pickupStartTime && item.pickupEndTime) && item.orderStatus !== 'PICKED_UP' && item.orderStatus !== 'CANCELLED' && (
+          <View style={styles.pickupInfo}>
+            <Ionicons name="time-outline" size={16} color="#666" />
+            <Text style={styles.pickupText}>
+              Pickup: {new Date(item.pickupStartTime!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(item.pickupEndTime!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </Text>
+          </View>
+        )}
+        {(!item.pickupStartTime || !item.pickupEndTime) && item.pickupTime && item.orderStatus !== 'PICKED_UP' && item.orderStatus !== 'CANCELLED' && (
           <View style={styles.pickupInfo}>
             <Ionicons name="time-outline" size={16} color="#666" />
             <Text style={styles.pickupText}>
@@ -179,9 +188,7 @@ const OrdersScreen: React.FC<OrdersScreenProps> = ({ onClose }) => {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-          <Ionicons name="arrow-back" size={24} color="#333" />
-        </TouchableOpacity>
+        <BackButton onPress={onClose} color="#333" />
         <Text style={styles.title}>My Orders</Text>
         <View style={{ width: 40 }} />
       </View>

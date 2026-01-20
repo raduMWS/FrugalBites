@@ -9,6 +9,7 @@ import { offerService } from '../services/api';
 import { RootStackParamList } from '../App';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
+import { CircularBackButton } from '../components';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type RouteProps = RouteProp<RootStackParamList, 'OfferDetail'>;
@@ -83,12 +84,7 @@ const OfferDetailScreen: React.FC = () => {
           <Image source={{ uri: offer.imageUrl }} style={styles.heroImage} />
           
           {/* Back Button */}
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Ionicons name="arrow-back" size={24} color="#1f2937" />
-          </TouchableOpacity>
+          <CircularBackButton style={styles.backButton} />
 
           {/* Save for later */}
           <TouchableOpacity
