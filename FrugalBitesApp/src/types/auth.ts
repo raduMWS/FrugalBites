@@ -17,6 +17,7 @@ export interface AuthUser {
   subscriptionStatus: SubscriptionStatus;
   isEmailVerified: boolean;
   createdAt: string;
+  isPremium: boolean;
 }
 
 export interface AuthResponse {

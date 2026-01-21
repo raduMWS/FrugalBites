@@ -1,3 +1,4 @@
+    public bool IsPremium { get; set; }
 using FrugalBites.Models.Enums;
 
 namespace FrugalBites.Models.DTOs;

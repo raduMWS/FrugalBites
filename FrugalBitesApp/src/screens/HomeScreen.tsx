@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, Alert, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { CompositeScreenProps } from '@react-navigation/native';
@@ -17,6 +17,7 @@ import { OfferDTO } from '../types/offer';
 import { MerchantDTO, PromoBanner } from '../types/merchant';
 import { RootStackParamList, TabParamList } from '../App';
 import { colors } from '../theme';
+import { useAuth } from '../context/AuthContext';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<TabParamList, 'Home'>,
@@ -25,6 +26,8 @@ type Props = CompositeScreenProps<
 
 const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const insets = useSafeAreaInsets();
+  const { user } = useAuth();
 
   // Request location permission and get user's location
   useEffect(() => {
@@ -88,9 +91,69 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     enabled: !!userLocation,
   });
 
+  // Only show premium deals to premium users
+  const showPremiumDeals = user?.isPremium;
+
   // Categorize offers by type
-  const premiumDeals = offers?.filter(o => o.discountPercentage >= 40).slice(0, 5) || [];
-  const foodBundles = offers?.filter(o => o.quantity > 1).slice(0, 5) || [];
+  // Demo data for Premium Deals
+  const premiumDeals = (offers?.filter(o => o.discountPercentage >= 40).slice(0, 5) ?? []).concat([
+    {
+      offerId: 'demo-premium-1',
+      title: 'VIP Sushi Combo',
+      discountPercentage: 50,
+      quantity: 1,
+      merchantId: 'demo-merchant-1',
+      merchantName: 'Sushi Palace',
+      merchantRating: 4.8,
+      merchantLogoUrl: '',
+      distanceKm: 1.2,
+      price: 19.99,
+      imageUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400',
+    },
+    {
+      offerId: 'demo-premium-2',
+      title: 'VIP Pizza Feast',
+      discountPercentage: 45,
+      quantity: 1,
+      merchantId: 'demo-merchant-2',
+      merchantName: 'Pizza Roma',
+      merchantRating: 4.5,
+      merchantLogoUrl: '',
+      distanceKm: 2.1,
+      price: 14.99,
+      imageUrl: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400',
+    },
+  ]);
+
+  // Demo data for Food Bundles
+  const foodBundles = (offers?.filter(o => o.quantity > 1).slice(0, 5) ?? []).concat([
+    {
+      offerId: 'demo-bundle-1',
+      title: 'Family Burger Pack',
+      discountPercentage: 30,
+      quantity: 4,
+      merchantId: 'demo-merchant-3',
+      merchantName: 'Burger House',
+      merchantRating: 4.3,
+      merchantLogoUrl: '',
+      distanceKm: 3.5,
+      price: 29.99,
+      imageUrl: 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=400',
+    },
+    {
+      offerId: 'demo-bundle-2',
+      title: 'Pizza & Wings Combo',
+      discountPercentage: 35,
+      quantity: 2,
+      merchantId: 'demo-merchant-2',
+      merchantName: 'Pizza Roma',
+      merchantRating: 4.5,
+      merchantLogoUrl: '',
+      distanceKm: 2.1,
+      price: 22.99,
+      imageUrl: 'https://images.unsplash.com/photo-1519864600265-abb23847ef2c?w=400',
+    },
+  ]);
   const restaurantList: MerchantDTO[] = merchants || [];
 
   const promoBanners: PromoBanner[] = [
@@ -121,7 +184,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <SafeAreaView style={styles.safeArea} edges={['top','bottom']}>
       <TopHeader 
         location="Your location"
         distance="5km"
@@ -129,7 +192,11 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
         onBagPress={() => navigation.navigate('Cart')}
         onProfilePress={() => navigation.navigate('Profile' as any)}
       />
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={{ paddingBottom: insets.bottom }}
+        showsVerticalScrollIndicator={false}
+      >
       {/* Location Warning */}
       {!userLocation && (
         <View style={styles.locationWarning}>
@@ -140,31 +207,33 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
       )}
 
       {/* Premium Deals Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>👑 Premium Deals</Text>
-        <Text style={styles.sectionSubtitle}>Exclusive for VIP members</Text>
-        {premiumDeals.length > 0 ? (
-          <FlatList
-            data={premiumDeals}
-            renderItem={({ item }) => (
-              <PremiumDealCard
-                offer={item}
-                onPress={() => navigation.navigate('OfferDetail', { offerId: item.offerId })}
-              />
-            )}
-            keyExtractor={(item) => item.offerId}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            scrollEnabled={true}
-            contentContainerStyle={styles.horizontalList}
-            snapToInterval={212}
-            snapToAlignment="start"
-            decelerationRate="fast"
-          />
-        ) : (
-          <Text style={styles.noItemsText}>No premium deals available</Text>
-        )}
-      </View>
+      {showPremiumDeals && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>👑 Premium Deals</Text>
+          <Text style={styles.sectionSubtitle}>Exclusive for VIP members</Text>
+          {premiumDeals.length > 0 ? (
+            <FlatList
+              data={premiumDeals}
+              renderItem={({ item }) => (
+                <PremiumDealCard
+                  offer={item}
+                  onPress={() => navigation.navigate('OfferDetail', { offerId: item.offerId })}
+                />
+              )}
+              keyExtractor={(item) => item.offerId}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              scrollEnabled={true}
+              contentContainerStyle={styles.horizontalList}
+              snapToInterval={212}
+              snapToAlignment="start"
+              decelerationRate="fast"
+            />
+          ) : (
+            <Text style={styles.noItemsText}>No premium deals available</Text>
+          )}
+        </View>
+      )}
 
       {/* Food Bundles Section */}
       <View style={styles.section}>
@@ -334,7 +403,7 @@ const styles = StyleSheet.create({
   },
   offersGrid: {
     paddingHorizontal: 4,
-    paddingBottom: 100,
+    paddingBottom: 24,
   },
   loadingContainer: {
     flex: 1,

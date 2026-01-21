@@ -1,3 +1,5 @@
+    [Column("IsPremium")]
+    public bool IsPremium { get; set; } = false;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using FrugalBites.Models.Enums;

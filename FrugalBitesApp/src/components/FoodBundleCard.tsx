@@ -11,7 +11,10 @@ interface FoodBundleCardProps {
 
 const FoodBundleCard: React.FC<FoodBundleCardProps> = ({ offer, onPress }) => {
   const [imageError, setImageError] = useState(false);
-  const formatPrice = (price: number) => `${price.toFixed(0)} RON`;
+  const formatPrice = (price: number | undefined | null) => {
+    if (typeof price !== 'number' || isNaN(price)) return '-';
+    return `${price.toFixed(0)} RON`;
+  };
 
   const imageUri = (!imageError && offer.imageUrl) ? offer.imageUrl : FALLBACK_IMAGE;
 
