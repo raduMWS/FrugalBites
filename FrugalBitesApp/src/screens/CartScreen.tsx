@@ -3,7 +3,33 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Alert, Activ
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useCart } from '../context/CartContext';
+// Dummy cart context for testing
+const useCart = () => ({
+  items: [
+    {
+      offer: {
+        offerId: '11111111-1111-1111-1111-111111111112',
+        foodName: 'Vegetable Tempura',
+        price: 29.99,
+        imageUrl: 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=400',
+      },
+      quantity: 2,
+    },
+    {
+      offer: {
+        offerId: '22222222-2222-2222-2222-222222222222',
+        foodName: 'Classic Cheeseburger',
+        price: 22.99,
+        imageUrl: 'https://images.unsplash.com/photo-1519864600265-abb23847ef2c?w=400',
+      },
+      quantity: 1,
+    },
+  ],
+  removeFromCart: (id: string) => {},
+  updateQuantity: (id: string, qty: number) => {},
+  getTotal: () => 29.99 * 2 + 22.99,
+  clearCart: () => {},
+});
 import { orderService } from '../services/api';
 import { logger } from '../services/logger';
 import PaymentSheet from '../components/PaymentSheet';

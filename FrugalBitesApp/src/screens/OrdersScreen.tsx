@@ -28,31 +28,80 @@ const OrdersScreen: React.FC<OrdersScreenProps> = ({ onClose }) => {
   const [activeTab, setActiveTab] = useState<'active' | 'past'>('active');
   const queryClient = useQueryClient();
 
-  const { data: orders, isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['orders'],
-    queryFn: () => orderService.getMyOrders(),
-  });
 
-  const cancelMutation = useMutation({
-    mutationFn: (orderId: string) => orderService.cancelOrder(orderId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
-      ordersLogger.info('Order cancelled successfully');
+  // Dummy/mock orders for testing
+  const mockOrders: OrderDTO[] = [
+    {
+      orderId: 'order-1',
+      offerId: '11111111-1111-1111-1111-111111111112',
+      merchantId: 'merchant-1',
+      foodName: 'Vegetable Tempura',
+      offerName: 'Vegetable Tempura',
+      merchantName: 'Veggie House',
+      merchantAddress: '123 Main St, Bucharest',
+      imageUrl: 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=400',
+      quantity: 2,
+      totalPrice: 59.98,
+      discountAmount: 10,
+      orderStatus: 'PENDING',
+      paymentStatus: 'PENDING',
+      pickupTime: new Date().toISOString(),
+      pickupStartTime: new Date().toISOString(),
+      pickupEndTime: new Date(Date.now() + 3600000).toISOString(),
+      createdAt: new Date().toISOString(),
     },
-    onError: (error: any) => {
-      ordersLogger.error('Failed to cancel order', { error: error.message });
-      Alert.alert('Error', 'Failed to cancel order. Please try again.');
+    {
+      orderId: 'order-2',
+      offerId: '22222222-2222-2222-2222-222222222222',
+      merchantId: 'merchant-2',
+      foodName: 'Classic Cheeseburger',
+      offerName: 'Classic Cheeseburger',
+      merchantName: 'Burger Roma',
+      merchantAddress: '45 Calea Victoriei, Bucharest',
+      imageUrl: 'https://images.unsplash.com/photo-1519864600265-abb23847ef2c?w=400',
+      quantity: 1,
+      totalPrice: 22.99,
+      discountAmount: 5,
+      orderStatus: 'CONFIRMED',
+      paymentStatus: 'COMPLETED',
+      pickupTime: new Date().toISOString(),
+      pickupStartTime: new Date().toISOString(),
+      pickupEndTime: new Date(Date.now() + 3600000).toISOString(),
+      createdAt: new Date().toISOString(),
     },
-  });
+    {
+      orderId: 'order-3',
+      offerId: '33333333-3333-3333-3333-333333333333',
+      merchantId: 'merchant-3',
+      foodName: 'Veggie Burger',
+      offerName: 'Veggie Burger',
+      merchantName: 'Green Eats',
+      merchantAddress: '78 Bulevardul Unirii, Bucharest',
+      imageUrl: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400',
+      quantity: 3,
+      totalPrice: 59.97,
+      discountAmount: 7,
+      orderStatus: 'PICKED_UP',
+      paymentStatus: 'COMPLETED',
+      pickupTime: new Date().toISOString(),
+      pickupStartTime: new Date().toISOString(),
+      pickupEndTime: new Date(Date.now() + 3600000).toISOString(),
+      createdAt: new Date().toISOString(),
+    },
+  ];
 
-  const activeOrders = orders?.filter(
+  const orders = mockOrders;
+  const isLoading = false;
+  const isRefetching = false;
+  const refetch = () => {};
+  const cancelMutation = { mutate: (orderId: string) => Alert.alert('Mock', 'Order cancelled (mock)') };
+
+  const activeOrders = orders.filter(
     (o) => ['PENDING', 'CONFIRMED', 'PREPARING', 'READY'].includes(o.orderStatus)
-  ) || [];
-
-  const pastOrders = orders?.filter(
+  );
+  const pastOrders = orders.filter(
     (o) => ['PICKED_UP', 'CANCELLED', 'EXPIRED'].includes(o.orderStatus)
-  ) || [];
-
+  );
   const displayedOrders = activeTab === 'active' ? activeOrders : pastOrders;
 
   const handleCancelOrder = (order: OrderDTO) => {

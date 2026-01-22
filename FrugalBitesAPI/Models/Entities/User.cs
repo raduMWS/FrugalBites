@@ -1,5 +1,3 @@
-    [Column("IsPremium")]
-    public bool IsPremium { get; set; } = false;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using FrugalBites.Models.Enums;
@@ -9,6 +7,8 @@ namespace FrugalBites.Models.Entities;
 [Table("Users")]
 public class User
 {
+    [Column("IsPremium")]
+    public bool IsPremium { get; set; } = false;
     [Key]
     [Column("UserId")]
     public Guid UserId { get; set; } = Guid.NewGuid();

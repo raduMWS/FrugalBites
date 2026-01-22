@@ -15,7 +15,16 @@ interface MenuItem {
 }
 
 const ProfileScreen: React.FC = () => {
-  const { user, logout } = useAuth();
+  // Dummy user for testing
+  const user = {
+    firstName: 'John',
+    lastName: 'Doe',
+    email: 'john.doe@example.com',
+    isVIP: true,
+    phoneNumber: '+40-721-123-456',
+    createdAt: '2025-12-01',
+  };
+  const logout = () => Alert.alert('Logout', 'Logged out (mock)');
   const [isVIP, setIsVIP] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [ordersModalVisible, setOrdersModalVisible] = useState(false);

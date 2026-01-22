@@ -15,7 +15,49 @@ type RootStackParamList = {
 type Props = StackScreenProps<RootStackParamList, 'RestaurantDetail'>;
 
 const RestaurantDetailScreen: React.FC<Props> = ({ route, navigation }) => {
-  const { merchantId, merchant } = route.params;
+  // Dummy merchant and offers for testing
+  const { merchantId } = route.params;
+  const merchant = {
+    merchantId: merchantId,
+    businessName: 'Veggie House',
+    description: 'Best vegetarian food in town',
+    logoUrl: '',
+    coverImageUrl: '',
+    latitude: 44.43,
+    longitude: 26.10,
+    city: 'Bucharest',
+    averageRating: 4.3,
+    totalReviews: 120,
+    distance: 3.5,
+  };
+  const offers = [
+    {
+      offerId: '11111111-1111-1111-1111-111111111112',
+      merchantId: merchantId,
+      foodName: 'Vegetable Tempura',
+      description: 'Crispy tempura vegetables',
+      category: 'RESTAURANT',
+      originalPrice: 39.99,
+      discountedPrice: 29.99,
+      discountPercentage: 25,
+      quantity: 4,
+      quantityUnit: 'PACK',
+      imageUrl: 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=400',
+      pickupStartTime: new Date().toISOString(),
+      pickupEndTime: new Date(Date.now() + 3600000).toISOString(),
+      allergens: [],
+      dietary: 'VEGETARIAN',
+      expirationDate: new Date(Date.now() + 86400000).toISOString(),
+      isAvailable: true,
+      createdAt: new Date().toISOString(),
+      merchantName: 'Veggie House',
+      merchantLogoUrl: '',
+      merchantRating: 4.3,
+      distanceKm: 3.5,
+    },
+  ];
+  const isLoading = false;
+  const error = false;
 
   // Fetch offers for this restaurant from API
   const { data: allOffers, isLoading, error } = useQuery({

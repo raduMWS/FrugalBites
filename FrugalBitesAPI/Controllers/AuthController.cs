@@ -114,8 +114,8 @@ public class AuthController : ControllerBase
                 UserType = user.UserType.ToString(),
                 SubscriptionStatus = request.SubscriptionStatus,
                 IsEmailVerified = user.IsEmailVerified,
-                CreatedAt = user.CreatedAt
-                    IsPremium = user.IsPremium
+                CreatedAt = user.CreatedAt,
+                IsPremium = user.IsPremium
             }
         });
     }
@@ -277,8 +277,8 @@ public class AuthController : ControllerBase
                 UserType = user.UserType.ToString(),
                 SubscriptionStatus = "FREE", // TODO: Get from database if adding subscription table
                 IsEmailVerified = user.IsEmailVerified,
-                CreatedAt = user.CreatedAt
-                    IsPremium = user.IsPremium
+                CreatedAt = user.CreatedAt,
+                IsPremium = user.IsPremium
             }
         });
     }
@@ -335,8 +335,8 @@ public class AuthController : ControllerBase
                 UserType = user.UserType.ToString(),
                 SubscriptionStatus = "FREE",
                 IsEmailVerified = user.IsEmailVerified,
-                CreatedAt = user.CreatedAt
-                    IsPremium = user.IsPremium
+                CreatedAt = user.CreatedAt,
+                IsPremium = user.IsPremium
             }
         });
     }

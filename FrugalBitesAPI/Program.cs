@@ -1359,6 +1359,76 @@ void SeedSampleData(ApplicationDbContext context)
     context.Offers.AddRange(offers);
     context.SaveChanges();
     
+    // Add mock orders
+    var order1 = new FrugalBites.Models.Entities.Order
+    {
+        OrderId = Guid.NewGuid(),
+        UserId = user1.UserId,
+        OfferId = context.Offers.First().OfferId,
+        MerchantId = merchant1.MerchantId,
+        Quantity = 2,
+        TotalPrice = 59.98m,
+        OrderStatus = FrugalBites.Models.Enums.OrderStatus.PENDING,
+        PaymentStatus = FrugalBites.Models.Enums.PaymentStatus.PENDING,
+        CreatedAt = DateTime.UtcNow,
+        PickupStartTime = DateTime.UtcNow.AddHours(1),
+        PickupEndTime = DateTime.UtcNow.AddHours(2)
+    };
+    var order2 = new FrugalBites.Models.Entities.Order
+    {
+        OrderId = Guid.NewGuid(),
+        UserId = user1.UserId,
+        OfferId = context.Offers.Skip(1).First().OfferId,
+        MerchantId = merchant2.MerchantId,
+        Quantity = 1,
+        TotalPrice = 22.99m,
+        OrderStatus = FrugalBites.Models.Enums.OrderStatus.CONFIRMED,
+        PaymentStatus = FrugalBites.Models.Enums.PaymentStatus.COMPLETED,
+        CreatedAt = DateTime.UtcNow,
+        PickupStartTime = DateTime.UtcNow.AddHours(2),
+        PickupEndTime = DateTime.UtcNow.AddHours(3)
+    };
+    context.Orders.AddRange(order1, order2);
+
+    // Add mock reviews
+    var review1 = new FrugalBites.Models.Entities.Review
+    {
+        ReviewId = Guid.NewGuid(),
+        OrderId = order1.OrderId,
+        UserId = user1.UserId,
+        MerchantId = merchant1.MerchantId,
+        Rating = 5,
+        ReviewText = "Amazing food and service!",
+        CreatedAt = DateTime.UtcNow
+    };
+    var review2 = new FrugalBites.Models.Entities.Review
+    {
+        ReviewId = Guid.NewGuid(),
+        OrderId = order2.OrderId,
+        UserId = user2.UserId,
+        MerchantId = merchant2.MerchantId,
+        Rating = 4,
+        ReviewText = "Great taste, will order again.",
+        CreatedAt = DateTime.UtcNow
+    };
+    context.Reviews.AddRange(review1, review2);
+
+    // Add mock favorites
+    var favorite1 = new FrugalBites.Models.Entities.Favorite
+    {
+        UserId = user1.UserId,
+        MerchantId = merchant1.MerchantId,
+        CreatedAt = DateTime.UtcNow
+    };
+    var favorite2 = new FrugalBites.Models.Entities.Favorite
+    {
+        UserId = user1.UserId,
+        MerchantId = merchant2.MerchantId,
+        CreatedAt = DateTime.UtcNow
+    };
+    context.Favorites.AddRange(favorite1, favorite2);
+
+    context.SaveChanges();
     Log.Information("Sample data seeded successfully");
 }
 

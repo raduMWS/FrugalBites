@@ -1,4 +1,3 @@
-    public bool IsPremium { get; set; }
 using FrugalBites.Models.Enums;
 
 namespace FrugalBites.Models.DTOs;
@@ -8,6 +7,7 @@ public class UserDTO
     public Guid UserId { get; set; }
     public string Email { get; set; } = string.Empty;
     public string? PhoneNumber { get; set; }
+    public bool IsPremium { get; set; }
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string? ProfileImageUrl { get; set; }

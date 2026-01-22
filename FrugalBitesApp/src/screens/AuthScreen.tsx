@@ -11,7 +11,16 @@ import {
   Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '../context/AuthContext';
+// Dummy auth context for testing
+const useAuth = () => ({
+  login: async (email: string, password: string) => {
+    if (email === 'john.doe@example.com' && password === 'password123') return true;
+    throw new Error('Invalid credentials');
+  },
+  signup: async (data: any) => true,
+  isLoading: false,
+  error: '',
+});
 import { SubscriptionStatus } from '../types/auth';
 import { colors } from '../theme';
 
